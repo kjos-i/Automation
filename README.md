@@ -5,6 +5,8 @@ so I don't have to. Each script uses the simplest approach that fits the task:
 a single LLM call, a graph, or a full agent. The right tool for the job, not one
 pattern forced onto every problem.
 
+**Author:** Ingrid Kjos ([ORCID 0000-0002-9166-3074](https://orcid.org/0000-0002-9166-3074))
+
 ## Scripts
 
 | Script | Does | Approach |
