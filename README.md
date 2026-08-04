@@ -415,3 +415,17 @@ Run:
     pip install langgraph langchain-openai httpx python-dotenv
     # .env next to the script:  OPENAI_API_KEY=sk-...  and  BRAVE_API_KEY=...
     python web_search_agent.py
+
+## Running on a schedule
+
+Every script here is one-shot (it does its job and exits), so you can schedule any
+of them the normal way, no code needed:
+
+- **Windows (Task Scheduler):** create a Basic Task, set a trigger (e.g. daily at
+  08:00), and point the action at `python C:\path\to\script.py`. It runs even when
+  no terminal is open, and survives a reboot.
+- **macOS / Linux (cron):** add a line like
+  `0 8 * * * /usr/bin/python3 /path/to/script.py`.
+
+For a quick "keep re-running while I'm working" loop without the OS scheduler,
+`web_search.py` has a built-in `REPEAT` / `CYCLE_MINUTES` option (Ctrl+C to stop).
