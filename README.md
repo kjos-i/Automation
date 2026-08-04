@@ -11,6 +11,7 @@ pattern forced onto every problem.
 
 | Script | Does | Approach |
 |--------|------|----------|
+| [doc_finder.py](#doc_finderpy) | semantic search over a folder of documents | single LLM call |
 | [mail_finder.py](#mail_finderpy) | semantic search over an exported mailbox | single LLM call |
 
 <!--
@@ -18,6 +19,30 @@ Per-script sections go below, alphabetical by filename (matching GitHub's
 file list). Each section's heading is just the script name so the table
 link anchors stay clean, e.g. [foo.py](#foopy) jumps to `### foo.py`.
 -->
+
+### doc_finder.py
+
+**Problem:** You have a folder full of documents and want the ones about a
+given topic, without opening each file to check.
+
+**Solution:** The document counterpart to `mail_finder.py`. Write the topic in
+plain language (`QUERY`), point it at a folder (`DOCS_FOLDER`, optionally
+recursive), and it reads each file and asks an LLM whether it matches,
+semantically. Reads `.txt` and `.md` out of the box; add `.pdf` or `.docx` to
+`FILE_TYPES` and it uses `pypdf` / `python-docx` if installed (and tells you to
+install them if not). Matches print to the terminal, and can optionally be
+copied into a folder or written to a list file. The Anthropic key lives in a
+local `.env`.
+
+**Why this approach:** Same reasoning as `mail_finder.py`: a per-file yes/no
+judgement is a single LLM call, not an agent. Built on Anthropic (Claude Haiku)
+to show the same pattern on a different provider.
+
+Run:
+
+    pip install anthropic python-dotenv     # + pypdf / python-docx for those formats
+    # .env next to the script:  ANTHROPIC_API_KEY=sk-ant-...
+    python doc_finder.py
 
 ### mail_finder.py
 
