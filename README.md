@@ -16,6 +16,7 @@ saving results to disk, and acting on your own files.
 |--------|------|----------|
 | [doc_finder.py](#doc_finderpy) | semantic search over a folder of documents | single LLM call |
 | [form_from_text.py](#form_from_textpy) | fills a form (your fields) from a long text, as JSON | single LLM call |
+| [form_interview.py](#form_interviewpy) | fills a form by chatting until it's complete, as JSON | conversational |
 | [mail_finder.py](#mail_finderpy) | semantic search over an exported mailbox | single LLM call |
 | [web_search.py](#web_searchpy) | repeatable web search via Tavily, saved to disk | search API (Tavily) |
 | [web_search_agent.py](#web_search_agentpy) | answers a question, deciding whether and how often to web-search | ReAct agent (LangGraph) |
@@ -85,6 +86,35 @@ Run:
     pip install openai python-dotenv
     # .env next to the script:  OPENAI_API_KEY=sk-...
     python form_from_text.py
+
+### form_interview.py
+
+**Problem:** Sometimes the form data does not exist in a document yet, it is in
+someone's head. You want to collect a fixed set of fields from a person without
+building a UI.
+
+**Solution:** The conversational companion to `form_from_text.py`, using the
+same `FORM_FIELDS`. It chats with you one question at a time, filling fields as
+you answer, and stops once every required field is present, then saves JSON.
+Each turn is one structured-output call returning the fields so far, the next
+question, and whether the form is complete. It records only what you actually
+say.
+
+**Why this approach:** This is the one script in the repo that genuinely needs a
+chat loop. You cannot fill a form up front when the answers do not exist yet, so
+the number of turns is not fixed; it depends on how much the person gives per
+message. That back-and-forth is the tool the task calls for.
+
+**Why not just ChatGPT?** A chatbot could ask similar questions, but this pins
+the exact field set, guarantees structured JSON at the end (not prose), enforces
+the required fields before finishing, and will not drift off task. It is a form,
+not a conversation that happens to mention the fields.
+
+Run:
+
+    pip install openai python-dotenv
+    # .env next to the script:  OPENAI_API_KEY=sk-...
+    python form_interview.py
 
 ### mail_finder.py
 
