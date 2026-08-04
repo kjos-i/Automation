@@ -14,11 +14,13 @@ saving results to disk, and acting on your own files.
 
 | Script | Does | Approach |
 |--------|------|----------|
+| [audio_transcriber.py](#audio_transcriberpy) | transcribes audio/video to text (local Whisper or cloud) | speech-to-text |
 | [doc_finder.py](#doc_finderpy) | semantic search over a folder of documents | single LLM call |
 | [form_from_text.py](#form_from_textpy) | fills a form (your fields) from a long text, as JSON | single LLM call |
 | [form_interview.py](#form_interviewpy) | fills a form by chatting until it's complete, as JSON | conversational |
 | [mail_finder.py](#mail_finderpy) | semantic search over an exported mailbox | single LLM call |
 | [rename_files.py](#rename_filespy) | bulk-rename files in a folder, safely | rules, no LLM (optional LLM assist) |
+| [summarize_folder.py](#summarize_folderpy) | summarizes every document in a folder into one index | map-reduce (Gemini) |
 | [web_search.py](#web_searchpy) | repeatable web search via Tavily, saved to disk | search API (Tavily) |
 | [web_search_agent.py](#web_search_agentpy) | answers a question, deciding whether and how often to web-search | ReAct agent (LangGraph) |
 
@@ -27,6 +29,33 @@ Per-script sections go below, alphabetical by filename (matching GitHub's
 file list). Each section's heading is just the script name so the table
 link anchors stay clean, e.g. [foo.py](#foopy) jumps to `### foo.py`.
 -->
+
+### audio_transcriber.py
+
+**Problem:** You have recordings (interviews, lectures, voice memos) and need
+them as text, ideally without uploading private audio anywhere.
+
+**Solution:** Point it at an audio/video file or a folder; it writes a `.txt`
+transcript for each (next to it, or in `OUTPUT_DIR`). One `ENGINE` flag chooses
+`faster-whisper` (runs Whisper locally, free, audio never leaves your machine,
+downloads the model once) or `openai` (cloud Whisper API, no setup, pay per
+minute). Pick a model size to trade speed for accuracy.
+
+**Why this approach:** Transcription is a solved, dedicated task (Whisper), not
+something to hand to a chat model. Local-first is the honest default: this is the
+one script in the repo where nothing has to leave your machine, which matters for
+confidential recordings.
+
+**Why not just ChatGPT?** You would upload each file by hand and could not batch
+a folder; in local mode this sends nothing at all. It also writes a clean `.txt`
+per recording that the other scripts (`summarize_folder`, `meeting_notes`) can
+read.
+
+Run:
+
+    # local (default): pip install faster-whisper
+    # cloud: pip install openai python-dotenv  (+ OPENAI_API_KEY in .env)
+    python audio_transcriber.py
 
 ### doc_finder.py
 
@@ -51,6 +80,10 @@ files at once, can't copy the matches back into a folder for you, and would mean
 pasting each document by hand. The script batches them in one command, acts on
 your actual files, and sends only the fields you choose (one file at a time)
 rather than pasting whole documents into a consumer chat.
+
+**Also useful for:** by changing `QUERY`, this doubles as a PII or
+sensitive/harmful-content scan across a folder of documents. Same caveat as
+`mail_finder`: it is triage for human review, not a guaranteed detector.
 
 Run:
 
@@ -140,6 +173,12 @@ script scans the entire export in one command, saves the matches to disk (`.eml`
 files plus a list), and sends only the fields you choose, one email at a time,
 instead of pasting private mail into a consumer chat.
 
+**Also useful for:** the match is only your `QUERY`, so the same script becomes a
+first-pass scanner for emails containing personal data (PII), credentials, or
+sensitive/harmful content, whatever you can describe. Treat it as triage that
+surfaces candidates for review, not a compliance-grade detector (an LLM can miss
+cases).
+
 Run:
 
     pip install openai python-dotenv
@@ -175,6 +214,33 @@ Run:
     # rules mode: nothing to install
     python rename_files.py
     # LLM mode: pip install openai python-dotenv  (+ OPENAI_API_KEY in .env)
+
+### summarize_folder.py
+
+**Problem:** A folder of documents you need the gist of without reading each one:
+which files cover what, and what the whole set is about.
+
+**Solution:** Point it at a folder; it summarizes each document in a few
+sentences, then writes a single markdown index, an overview of the whole
+collection followed by a per-file summary. Reads `.txt`/`.md` out of the box,
+with `.pdf`/`.docx` via optional `pypdf`/`python-docx`.
+
+**Why this approach (and why Gemini):** Summarizing a folder is a map-reduce job,
+summarize each file, then summarize the summaries. It runs on Google Gemini
+specifically because its very large context window suits long documents: you can
+feed a lot of each file in one call. That is a real reason to pick Gemini here,
+not a token appearance, and it is why this is the repo's Gemini script.
+
+**Why not just ChatGPT?** A chatbot summarizes one pasted document at a time.
+This walks a whole folder, reads your local files (including formats you would
+otherwise convert by hand), and leaves you a saved index you can keep and
+re-generate.
+
+Run:
+
+    pip install google-genai python-dotenv     # + pypdf / python-docx for those formats
+    # .env next to the script:  GEMINI_API_KEY=...
+    python summarize_folder.py
 
 ### web_search.py
 
