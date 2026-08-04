@@ -18,6 +18,7 @@ saving results to disk, and acting on your own files.
 | [form_from_text.py](#form_from_textpy) | fills a form (your fields) from a long text, as JSON | single LLM call |
 | [form_interview.py](#form_interviewpy) | fills a form by chatting until it's complete, as JSON | conversational |
 | [mail_finder.py](#mail_finderpy) | semantic search over an exported mailbox | single LLM call |
+| [rename_files.py](#rename_filespy) | bulk-rename files in a folder, safely | rules, no LLM (optional LLM assist) |
 | [web_search.py](#web_searchpy) | repeatable web search via Tavily, saved to disk | search API (Tavily) |
 | [web_search_agent.py](#web_search_agentpy) | answers a question, deciding whether and how often to web-search | ReAct agent (LangGraph) |
 
@@ -145,6 +146,36 @@ Run:
     # .env next to the script:  OPENAI_API_KEY=sk-...
     python mail_finder.py
 
+### rename_files.py
+
+**Problem:** A folder full of messily named files (`My File FINAL (1).pdf`,
+`IMG_2394.jpg`) that you want cleaned up or consistently named, without renaming
+each one by hand.
+
+**Solution:** Point it at a folder and pick a mode. **Rules mode** (default, no
+LLM, no dependencies) tidies each name: lowercase, swap spaces, strip junk words,
+with an optional date or sequential-number prefix. **LLM mode** (`USE_LLM=True`)
+lets a model propose a fresh descriptive name from the filename (and optionally
+`.txt`/`.md` content). Either way it prints a dry-run table and renames only when
+`APPLY=True`; it never overwrites (colliding names get `_1`, `_2`) and renames in
+two phases so files can swap names safely.
+
+**Why this approach:** This is the repo's no-AI example, on purpose. A
+rules-based rename needs no model at all, so the default mode has zero
+dependencies and zero cost. The LLM is opt-in, for the one case where the
+filenames carry nothing to work from. Using AI here by default would be the
+wrong tool.
+
+**Why not just ChatGPT?** A chatbot cannot rename files on your disk. This does
+the actual renaming, safely (dry-run first, no overwrites), across a whole folder
+at once, and for the common case without sending anything anywhere.
+
+Run:
+
+    # rules mode: nothing to install
+    python rename_files.py
+    # LLM mode: pip install openai python-dotenv  (+ OPENAI_API_KEY in .env)
+
 ### web_search.py
 
 **Problem:** You run the same kind of web search often and want it repeatable,
@@ -154,7 +185,8 @@ filterable, and saved, not a throwaway browser tab you re-type every time.
 at the top (allowed/forbidden sites, a time window, result count, general vs
 news), run it, and get ranked results plus an optional short AI summary. With
 `TIMESTAMP_FILENAME` on, each run saves to a dated file, so repeating a query
-builds a history.
+builds a history. Set `REPEAT` on with a `CYCLE_MINUTES` interval to keep
+re-running it automatically as a simple monitor (Ctrl+C to stop).
 
 **Why this approach:** Tavily is itself an LLM-powered search service, so the
 search and the optional summary come straight from its API, with no reason to

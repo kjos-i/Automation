@@ -4,6 +4,8 @@ Set what to search for plus optional filters (allowed/forbidden sites, a time
 window, how many results, general vs news) at the top, run it, and get ranked
 results plus an optional short AI summary. With TIMESTAMP_FILENAME on, each run
 is saved to a dated file, so re-running the same query builds a little history.
+Set REPEAT on to keep re-running the query on a fixed cycle (a simple monitor);
+stop it with Ctrl+C.
 
 Tavily is itself an LLM-powered search service, so this script adds no LLM of
 its own: the search and the optional summary come straight from Tavily's API.
@@ -31,10 +33,14 @@ INCLUDE_ANSWER = True  # also get Tavily's short AI summary
 SAVE_TO_FILE = False
 OUTPUT_FILE = r"C:\path\to\search_results.md"  # used only if SAVE_TO_FILE
 TIMESTAMP_FILENAME = True  # add date and time to the name (keeps a history)
+
+REPEAT = False  # re-run automatically on a cycle (Ctrl+C to stop)
+CYCLE_MINUTES = 60  # minutes between runs when REPEAT is on
 # ================================================================
 
 import os
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -94,6 +100,22 @@ def resolve_output_path() -> Path:
     return p
 
 
+def do_one_run(client: TavilyClient) -> None:
+    print(f"Searching: {QUERY!r}\n")
+    try:
+        resp = run_search(client)
+    except Exception as exc:
+        print(f"Search failed: {exc}", file=sys.stderr)
+        return  # in a REPEAT loop, one failure should not stop the monitor
+    report = format_report(resp)
+    print(report)
+    if SAVE_TO_FILE:
+        dest = resolve_output_path()
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(report, encoding="utf-8")
+        print(f"\nSaved to {dest}")
+
+
 def main() -> None:
     load_dotenv()
     if not os.getenv("TAVILY_API_KEY"):
@@ -103,20 +125,20 @@ def main() -> None:
         )
     client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
-    print(f"Searching: {QUERY!r}\n")
+    if not REPEAT:
+        do_one_run(client)
+        return
+
+    if SAVE_TO_FILE and not TIMESTAMP_FILENAME:
+        print("(note: TIMESTAMP_FILENAME is off, so each run overwrites the same file)\n")
+    print(f"REPEAT on: running every {CYCLE_MINUTES} min. Press Ctrl+C to stop.\n")
     try:
-        resp = run_search(client)
-    except Exception as exc:
-        sys.exit(f"Search failed: {exc}")
-
-    report = format_report(resp)
-    print(report)
-
-    if SAVE_TO_FILE:
-        dest = resolve_output_path()
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(report, encoding="utf-8")
-        print(f"\nSaved to {dest}")
+        while True:
+            do_one_run(client)
+            print(f"\n--- sleeping {CYCLE_MINUTES} min ---\n")
+            time.sleep(CYCLE_MINUTES * 60)
+    except KeyboardInterrupt:
+        print("\nStopped.")
 
 
 if __name__ == "__main__":
