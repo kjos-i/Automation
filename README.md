@@ -24,6 +24,7 @@ saving results to disk, and acting on your own files.
 | [meeting_notes.py](#meeting_notespy) | turns a transcript into structured minutes | single LLM call |
 | [rename_files.py](#rename_filespy) | bulk-rename files in a folder, safely | rules, no LLM (optional LLM assist) |
 | [summarize_folder.py](#summarize_folderpy) | summarizes every document in a folder into one index | map-reduce (Gemini) |
+| [supervisor_assistant.py](#supervisor_assistantpy) | routes a request to expert agents (web + your docs) and synthesizes | multi-agent supervisor (LangGraph) |
 | [web_search.py](#web_searchpy) | repeatable web search via Tavily, saved to disk | search API (Tavily) |
 | [web_search_agent.py](#web_search_agentpy) | answers a question, deciding whether and how often to web-search | ReAct agent (LangGraph) |
 
@@ -324,6 +325,38 @@ Run:
     pip install google-genai python-dotenv     # + pypdf / python-docx for those formats
     # .env next to the script:  GEMINI_API_KEY=...
     python summarize_folder.py
+
+### supervisor_assistant.py
+
+**Problem:** Some requests span more than one domain at once, "how does my saved
+note on X compare to the latest online?" needs both your local files and the web,
+and a single tool or agent handles that awkwardly.
+
+**Solution:** A hand-built multi-agent supervisor. One request goes in; a
+supervisor decides which expert agent should act next, lets it work, and repeats
+until it can answer, then synthesizes. Two workers, each a genuine multi-step
+agent: `web_research` (Brave search, refines its queries) and `docs` (searches
+your local folder, decides which files to open and read). Built as a plain
+LangGraph `StateGraph`, a supervisor node, one node per worker, a finalize node,
+conditional routing, and a step cap, with no `create_supervisor` and no
+`create_react_agent`, so the control flow is fully visible.
+
+**Why this approach (honestly):** A supervisor earns its place only when subtasks
+span distinct domains and each genuinely needs its own loop, exactly the case here
+(the web vs. your files), and the payoff is that it can chain them for one
+request. For a single-domain task, a single ReAct agent (`web_search_agent`) is
+the right tool, not this. The workers are deliberately read-only (search/read),
+no autonomous file changes.
+
+**Why not just ChatGPT?** It searches your own local documents and the live web in
+one pass, using tools a chat window does not have, and keeps the file-reading on
+your machine. The result is a synthesis grounded in both, with sources.
+
+Run:
+
+    pip install langgraph langchain-openai httpx python-dotenv
+    # .env next to the script:  OPENAI_API_KEY=sk-...  and  BRAVE_API_KEY=...
+    python supervisor_assistant.py
 
 ### web_search.py
 
