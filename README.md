@@ -15,6 +15,7 @@ saving results to disk, and acting on your own files.
 | Script | Does | Approach |
 |--------|------|----------|
 | [doc_finder.py](#doc_finderpy) | semantic search over a folder of documents | single LLM call |
+| [form_from_text.py](#form_from_textpy) | fills a form (your fields) from a long text, as JSON | single LLM call |
 | [mail_finder.py](#mail_finderpy) | semantic search over an exported mailbox | single LLM call |
 | [web_search.py](#web_searchpy) | repeatable web search via Tavily, saved to disk | search API (Tavily) |
 | [web_search_agent.py](#web_search_agentpy) | answers a question, deciding whether and how often to web-search | ReAct agent (LangGraph) |
@@ -54,6 +55,36 @@ Run:
     pip install anthropic python-dotenv     # + pypdf / python-docx for those formats
     # .env next to the script:  ANTHROPIC_API_KEY=sk-ant-...
     python doc_finder.py
+
+### form_from_text.py
+
+**Problem:** You have a long text (an email, a report, notes, a CV) and need the
+same handful of fields pulled out of it every time, as clean structured data
+rather than by hand.
+
+**Solution:** Define the form once at the top (`FORM_FIELDS`, each with a name
+and a plain-language description), point it at a text file (or paste the text
+inline), and it extracts those fields in a single structured LLM call and writes
+them out as JSON. It fills only what the text actually contains and leaves
+anything it cannot find as `null`, and it reports which required fields were
+missing, so it never invents a value.
+
+**Why this approach:** The data already exists in the text, so this is a
+one-shot extraction: a single LLM call with a structured-output schema (a
+Pydantic model built from your fields). No chat and no agent, because there is
+nothing to decide or ask, only to extract.
+
+**Why not just ChatGPT?** Pasting one document into a chat works once. This
+applies the exact same field set to any text, every time, returns machine
+readable JSON you can feed into something else, and (with the null-if-absent
+rule) is honest about what the text did not contain instead of quietly filling
+gaps.
+
+Run:
+
+    pip install openai python-dotenv
+    # .env next to the script:  OPENAI_API_KEY=sk-...
+    python form_from_text.py
 
 ### mail_finder.py
 
