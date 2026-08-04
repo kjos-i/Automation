@@ -22,7 +22,9 @@ saving results to disk, and acting on your own files.
 | [local_llm.py](#local_llmpy) | run an instruction over a text with a local model (Ollama) | single LLM call (local) |
 | [mail_finder.py](#mail_finderpy) | semantic search over an exported mailbox | single LLM call |
 | [meeting_notes.py](#meeting_notespy) | turns a transcript into structured minutes | single LLM call |
+| [random_picker.py](#random_pickerpy) | pick random items from a folder, list file, or list | stdlib, no LLM |
 | [rename_files.py](#rename_filespy) | bulk-rename files in a folder, safely | rules, no LLM (optional LLM assist) |
+| [scheduler.py](#schedulerpy) | run any script here on a schedule (interval or daily) | stdlib, no LLM |
 | [summarize_folder.py](#summarize_folderpy) | summarizes every document in a folder into one index | map-reduce (Gemini) |
 | [supervisor_assistant.py](#supervisor_assistantpy) | routes a request to expert agents (web + your docs) and synthesizes | multi-agent supervisor (LangGraph) |
 | [web_search.py](#web_searchpy) | repeatable web search via Tavily, saved to disk | search API (Tavily) |
@@ -269,6 +271,30 @@ Run:
     # .env next to the script:  OPENAI_API_KEY=sk-...
     python meeting_notes.py
 
+### random_picker.py
+
+**Problem:** You need to pick a few things at random, files to spot-check, records
+to review, a winner, and doing it by hand is neither quick nor genuinely random.
+
+**Solution:** Give it a source (a folder, a text file with one item per line, or
+an inline list) and how many to pick; it picks at random and prints them, and for
+a folder it can copy the picked files aside or save the list. Set `SEED` to a
+number for a reproducible pick (same seed gives the same result), which makes a
+research sample fair and repeatable.
+
+**Why this approach:** This is not an AI task at all, it is ten lines of the
+standard library: no model, no network, no cost. It is here as the deliberate
+reminder that the right tool is sometimes just `random`.
+
+**Why not just ChatGPT?** Language models are famously bad at being random, and a
+chatbot cannot reach into your folder. This gives a genuinely uniform pick over
+your actual files, reproducibly if you want.
+
+Run:
+
+    # nothing to install (standard library only)
+    python random_picker.py
+
 ### rename_files.py
 
 **Problem:** A folder full of messily named files (`My File FINAL (1).pdf`,
@@ -298,6 +324,30 @@ Run:
     # rules mode: nothing to install
     python rename_files.py
     # LLM mode: pip install openai python-dotenv  (+ OPENAI_API_KEY in .env)
+
+### scheduler.py
+
+**Problem:** You want one of these scripts to run on a schedule (every hour, or
+every morning) without setting it up in the OS by hand.
+
+**Solution:** Point `SCRIPT` at any script in this folder and pick a schedule,
+every N minutes or daily at a set time; it re-launches that script on that
+schedule for as long as it stays open (Ctrl+C to stop). Pure standard library,
+nothing to install.
+
+**Why this approach:** Scheduling is not an AI task, it is a loop and a clock, so
+there is no LLM here. It is cross-platform and simple. For truly unattended
+scheduling (survives closing the window and reboots) the OS scheduler is the right
+tool, see the "Running on a schedule" section; this is the convenient "leave it
+running" option.
+
+**Why not just ChatGPT?** Not applicable, a chatbot cannot run your scripts on a
+timer. This is plain automation glue.
+
+Run:
+
+    # nothing to install (standard library only)
+    python scheduler.py
 
 ### summarize_folder.py
 
