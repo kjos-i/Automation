@@ -16,6 +16,7 @@ saving results to disk, and acting on your own files.
 |--------|------|----------|
 | [audio_transcriber.py](#audio_transcriberpy) | transcribes audio/video to text (local Whisper or cloud) | speech-to-text |
 | [doc_finder.py](#doc_finderpy) | semantic search over a folder of documents | single LLM call |
+| [folder_tidy.py](#folder_tidypy) | sorts a folder into category subfolders (LLM), safely | single LLM call |
 | [form_from_text.py](#form_from_textpy) | fills a form (your fields) from a long text, as JSON | single LLM call |
 | [form_interview.py](#form_interviewpy) | fills a form by chatting until it's complete, as JSON | conversational |
 | [local_llm.py](#local_llmpy) | run an instruction over a text with a local model (Ollama) | single LLM call (local) |
@@ -92,6 +93,33 @@ Run:
     pip install anthropic python-dotenv     # + pypdf / python-docx for those formats
     # .env next to the script:  ANTHROPIC_API_KEY=sk-ant-...
     python doc_finder.py
+
+### folder_tidy.py
+
+**Problem:** A folder where files belong in meaningful buckets (invoices,
+contracts, reports) that a by-type sort cannot tell apart, and you do not want to
+file each one by hand.
+
+**Solution:** List the `CATEGORIES` you want at the top; it reads each file (its
+name, or `.txt`/`.md` content if `READ_CONTENT` is on), picks the best-fit
+category, shows a dry-run table (file to category), and only moves files into
+those subfolders when `APPLY` is True. It never overwrites (colliding names get a
+`_1` suffix) and skips files that are already sorted.
+
+**Why this approach:** This is where an LLM earns its place, unlike
+`rename_files`: sorting by *meaning* into your own categories is a judgement a
+rules engine cannot make. It is still one classification call per file, no agent,
+and the move stays behind a dry-run and an `APPLY` switch.
+
+**Why not just ChatGPT?** A chatbot cannot move files on your disk. This does the
+sorting for real, across a whole folder, safely (preview first), into the exact
+categories you defined.
+
+Run:
+
+    pip install openai python-dotenv
+    # .env next to the script:  OPENAI_API_KEY=sk-...
+    python folder_tidy.py
 
 ### form_from_text.py
 
