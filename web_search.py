@@ -5,8 +5,8 @@ window, how many results, general vs news) at the top, run it, and get ranked
 results plus an optional short AI summary. With TIMESTAMP_FILENAME on, each run
 is saved to a dated file, so re-running the same query builds a little history.
 
-No LLM call of our own: Tavily does the search and, optionally, the summary.
-This is a plain search-API utility, the right and simplest tool for the job.
+Tavily is itself an LLM-powered search service, so this script adds no LLM of
+its own: the search and the optional summary come straight from Tavily's API.
 
 Setup:
     pip install tavily-python python-dotenv

@@ -16,7 +16,8 @@ saving results to disk, and acting on your own files.
 |--------|------|----------|
 | [doc_finder.py](#doc_finderpy) | semantic search over a folder of documents | single LLM call |
 | [mail_finder.py](#mail_finderpy) | semantic search over an exported mailbox | single LLM call |
-| [web_search.py](#web_searchpy) | repeatable web search via Tavily, saved to disk | plain API call (no LLM) |
+| [web_search.py](#web_searchpy) | repeatable web search via Tavily, saved to disk | search API (Tavily) |
+| [web_search_agent.py](#web_search_agentpy) | answers a question, deciding whether and how often to web-search | ReAct agent (LangGraph) |
 
 <!--
 Per-script sections go below, alphabetical by filename (matching GitHub's
@@ -94,9 +95,9 @@ news), run it, and get ranked results plus an optional short AI summary. With
 `TIMESTAMP_FILENAME` on, each run saves to a dated file, so repeating a query
 builds a history.
 
-**Why this approach:** The search and the summary are exactly what Tavily's API
-returns, so there is no reason to add an LLM of our own. A plain API call is the
-right, simplest tool for the job.
+**Why this approach:** Tavily is itself an LLM-powered search service, so the
+search and the optional summary come straight from its API, with no reason to
+add another LLM of our own. A single API call is the right, simplest tool here.
 
 **Why not just ask ChatGPT to browse?** A chatbot gives a throwaway answer. This
 pins your allowed/forbidden sites and time window exactly, returns structured,
@@ -108,3 +109,34 @@ Run:
     pip install tavily-python python-dotenv
     # .env next to the script:  TAVILY_API_KEY=tvly-...
     python web_search.py
+
+### web_search_agent.py
+
+**Problem:** Some questions you can answer from what you already know; others
+need a quick web look first, and sometimes more than one. You want one thing you
+can point at a question and trust to work out which case it is.
+
+**Solution:** A tiny ReAct agent, hand-built as a LangGraph graph (a model node
+and a tool node joined by conditional routing) so the control flow is visible.
+It has a single tool: web search (Brave, a different backend from `web_search.py`
+above, which uses Tavily). Put a question at the top; the agent decides whether
+to search, refines and searches again if the results are thin (up to
+`MAX_SEARCHES`), then answers with sources. If it already knows, it answers with
+zero searches.
+
+**Why this approach:** This is the one script in the repo that genuinely needs
+an agent. The number of steps is not known in advance (it depends on the
+question and on what each search returns), so the flow cannot be a fixed single
+call or a straight line. One tool is enough; the agency is in the decision
+(whether to search, how many times, when to stop), not in having many tools.
+
+**Why not just ChatGPT?** A browser chatbot can answer interactively. The script
+makes it reproducible and scriptable: a fixed question, a bounded number of
+searches, and the answer saved with its exact sources to disk. It is also a
+clear, minimal example of how the decide-and-search loop actually works.
+
+Run:
+
+    pip install langgraph langchain-openai httpx python-dotenv
+    # .env next to the script:  OPENAI_API_KEY=sk-...  and  BRAVE_API_KEY=...
+    python web_search_agent.py
