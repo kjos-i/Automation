@@ -1,20 +1,22 @@
 # Automation
 
-Small, single-purpose scripts that take a prompt, decide what to do, and do it,
-so I don't have to. Each script uses the simplest approach that fits the task:
-a single LLM call, a graph, or a full agent. The right tool for the job, not one
-pattern forced onto every problem. Each script's section also notes when a
-browser chatbot would have done the job, and why the script earns its place:
-scale (batching hundreds of items), repeatability (one command, re-run anytime),
-saving results to disk, and acting on your own files.
+A set of small, single-purpose scripts — each does one everyday task with the
+simplest tool that fits it, rather than forcing one pattern onto every problem.
+Some use no AI at all (plain Python: rename files, draw a random sample, run
+something on a schedule); some make a single LLM call; some call a search or
+speech-to-text service; and a couple are full agents, for the jobs that genuinely
+need one.
 
-**Author:** Ingrid Kjos ([ORCID 0000-0002-9166-3074](https://orcid.org/0000-0002-9166-3074))
+Each script's section also notes when an AI assistant could have done the same
+thing — and why the script still earns its place: scale (batching hundreds of
+items), repeatability (one command, re-run anytime), saving results to disk, and
+acting on your own files.
 
 ## Scripts
 
 | Script | Does | Approach |
 |--------|------|----------|
-| [audio_transcriber.py](#audio_transcriberpy) | transcribes audio/video to text (local Whisper or cloud) | speech-to-text |
+| [audio_transcriber.py](#audio_transcriberpy) | transcribes audio/video to text (local Whisper) | speech-to-text |
 | [doc_finder.py](#doc_finderpy) | semantic search over a folder of documents | single LLM call |
 | [folder_tidy.py](#folder_tidypy) | sorts a folder into category subfolders (LLM), safely | single LLM call |
 | [form_from_text.py](#form_from_textpy) | fills a form (your fields) from a long text, as JSON | single LLM call |
@@ -42,25 +44,22 @@ link anchors stay clean, e.g. [foo.py](#foopy) jumps to `### foo.py`.
 them as text, ideally without uploading private audio anywhere.
 
 **Solution:** Point it at an audio/video file or a folder; it writes a `.txt`
-transcript for each (next to it, or in `OUTPUT_DIR`). One `ENGINE` flag chooses
-`faster-whisper` (runs Whisper locally, free, audio never leaves your machine,
-downloads the model once) or `openai` (cloud Whisper API, no setup, pay per
-minute). Pick a model size to trade speed for accuracy.
+transcript for each (next to it, or in `OUTPUT_DIR`). It runs Whisper **locally**
+via faster-whisper — free, and the audio never leaves your machine. It downloads
+the chosen model size once (tiny ~75 MB … large ~3 GB), then reuses it; pick a
+size to trade speed for accuracy.
 
 **Why this approach:** Transcription is a solved, dedicated task (Whisper), not
-something to hand to a chat model. Local-first is the honest default: this is the
-one script in the repo where nothing has to leave your machine, which matters for
-confidential recordings.
+something to hand to a chat model. And it runs entirely on your machine — nothing
+is uploaded, which matters for confidential recordings.
 
-**Why not just ChatGPT?** You would upload each file by hand and could not batch
-a folder; in local mode this sends nothing at all. It also writes a clean `.txt`
-per recording that the other scripts (`summarize_folder`, `meeting_notes`) can
-read.
+**Why not just chat with an AI assistant?** You would upload each file by hand and could not batch a
+folder; this sends nothing anywhere. It also writes a clean `.txt` per recording
+that the other scripts (`summarize_folder`, `meeting_notes`) can read.
 
 Run:
 
-    # local (default): pip install faster-whisper
-    # cloud: pip install openai python-dotenv  (+ OPENAI_API_KEY in .env)
+    pip install faster-whisper
     python audio_transcriber.py
 
 ### doc_finder.py
@@ -78,10 +77,9 @@ copied into a folder or written to a list file. The Anthropic key lives in a
 local `.env`.
 
 **Why this approach:** Same reasoning as `mail_finder.py`: a per-file yes/no
-judgement is a single LLM call, not an agent. Built on Anthropic (Claude Haiku)
-to show the same pattern on a different provider.
+judgement is a single LLM call, not an agent. Built on Anthropic (Claude Haiku).
 
-**Why not just ChatGPT?** A browser chat can't read a folder of hundreds of
+**Why not just chat with an AI assistant?** An AI assistant can't read a folder of hundreds of
 files at once, can't copy the matches back into a folder for you, and would mean
 pasting each document by hand. The script batches them in one command, acts on
 your actual files, and sends only the fields you choose (one file at a time)
@@ -114,7 +112,7 @@ those subfolders when `APPLY` is True. It never overwrites (colliding names get 
 rules engine cannot make. It is still one classification call per file, no agent,
 and the move stays behind a dry-run and an `APPLY` switch.
 
-**Why not just ChatGPT?** A chatbot cannot move files on your disk. This does the
+**Why not just chat with an AI assistant?** An AI assistant cannot move files on your disk. This does the
 sorting for real, across a whole folder, safely (preview first), into the exact
 categories you defined.
 
@@ -142,7 +140,7 @@ one-shot extraction: a single LLM call with a structured-output schema (a
 Pydantic model built from your fields). No chat and no agent, because there is
 nothing to decide or ask, only to extract.
 
-**Why not just ChatGPT?** Pasting one document into a chat works once. This
+**Why not just chat with an AI assistant?** Pasting one document into an AI assistant works once. This
 applies the exact same field set to any text, every time, returns machine
 readable JSON you can feed into something else, and (with the null-if-absent
 rule) is honest about what the text did not contain instead of quietly filling
@@ -172,7 +170,7 @@ chat loop. You cannot fill a form up front when the answers do not exist yet, so
 the number of turns is not fixed; it depends on how much the person gives per
 message. That back-and-forth is the tool the task calls for.
 
-**Why not just ChatGPT?** A chatbot could ask similar questions, but this pins
+**Why not just chat with an AI assistant?** An AI assistant could ask similar questions, but this pins
 the exact field set, guarantees structured JSON at the end (not prose), enforces
 the required fields before finishing, and will not drift off task. It is a form,
 not a conversation that happens to mention the fields.
@@ -198,7 +196,7 @@ text, so it is one LLM call, no agent. Running it on Ollama is the point: for
 sensitive material, free and fully offline beats cloud quality. It is the LLM
 counterpart to `audio_transcriber`'s local Whisper.
 
-**Why not just ChatGPT?** ChatGPT would mean uploading the text. This keeps
+**Why not just chat with an AI assistant?** Using an AI assistant would mean uploading the text. This keeps
 confidential content on your machine, costs nothing, and works with no internet.
 (A local model is a bit less capable than a frontier cloud one, which is the
 honest trade for privacy.)
@@ -227,7 +225,7 @@ controlled by flags at the top of the file. The OpenAI key lives in a local
 single LLM call per message. No agent and no tools (that would be overkill);
 the model does the "understand synonyms" work for free.
 
-**Why not just ChatGPT?** You can't paste a whole mailbox into a chat box. The
+**Why not just chat with an AI assistant?** You can't paste a whole mailbox into an AI assistant. The
 script scans the entire export in one command, saves the matches to disk (`.eml`
 files plus a list), and sends only the fields you choose, one email at a time,
 instead of pasting private mail into a consumer chat.
@@ -260,7 +258,7 @@ one-shot structured extraction (same tier as `form_from_text`, richer shape). No
 agent needed. It is told to use only what was said, so it will not invent a
 decision or assign an owner nobody named.
 
-**Why not just ChatGPT?** You would paste the transcript and get prose. This
+**Why not just chat with an AI assistant?** You would paste the transcript and get prose. This
 gives the same fixed structure every time (summary / decisions / actions /
 questions), saves it to a file, and chains cleanly after the transcriber:
 consistent output you can file or feed onward, not a one-off answer.
@@ -286,8 +284,8 @@ research sample fair and repeatable.
 standard library: no model, no network, no cost. It is here as the deliberate
 reminder that the right tool is sometimes just `random`.
 
-**Why not just ChatGPT?** Language models are famously bad at being random, and a
-chatbot cannot reach into your folder. This gives a genuinely uniform pick over
+**Why not just chat with an AI assistant?** Language models are famously bad at being random,
+and an AI assistant can't reach into your folder. This gives a genuinely uniform pick over
 your actual files, reproducibly if you want.
 
 Run:
@@ -315,7 +313,7 @@ dependencies and zero cost. The LLM is opt-in, for the one case where the
 filenames carry nothing to work from. Using AI here by default would be the
 wrong tool.
 
-**Why not just ChatGPT?** A chatbot cannot rename files on your disk. This does
+**Why not just chat with an AI assistant?** An AI assistant cannot rename files on your disk. This does
 the actual renaming, safely (dry-run first, no overwrites), across a whole folder
 at once, and for the common case without sending anything anywhere.
 
@@ -341,7 +339,7 @@ scheduling (survives closing the window and reboots) the OS scheduler is the rig
 tool, see the "Running on a schedule" section; this is the convenient "leave it
 running" option.
 
-**Why not just ChatGPT?** Not applicable, a chatbot cannot run your scripts on a
+**Why not just chat with an AI assistant?** Not applicable, an AI assistant cannot run your scripts on a
 timer. This is plain automation glue.
 
 Run:
@@ -365,7 +363,7 @@ specifically because its very large context window suits long documents: you can
 feed a lot of each file in one call. That is a real reason to pick Gemini here,
 not a token appearance, and it is why this is the repo's Gemini script.
 
-**Why not just ChatGPT?** A chatbot summarizes one pasted document at a time.
+**Why not just chat with an AI assistant?** An AI assistant summarizes one pasted document at a time.
 This walks a whole folder, reads your local files (including formats you would
 otherwise convert by hand), and leaves you a saved index you can keep and
 re-generate.
@@ -373,7 +371,7 @@ re-generate.
 Run:
 
     pip install google-genai python-dotenv     # + pypdf / python-docx for those formats
-    # .env next to the script:  GEMINI_API_KEY=...
+    # .env next to the script:  GOOGLE_API_KEY=...
     python summarize_folder.py
 
 ### supervisor_agent.py
@@ -398,14 +396,14 @@ request. For a single-domain task, a single ReAct agent (`web_search_agent`) is
 the right tool, not this. The workers are deliberately read-only (search/read),
 no autonomous file changes.
 
-**Why not just ChatGPT?** It searches your own local documents and the live web in
+**Why not just chat with an AI assistant?** It searches your own local documents and the live web in
 one pass, using tools a chat window does not have, and keeps the file-reading on
 your machine. The result is a synthesis grounded in both, with sources.
 
 Run:
 
     pip install langgraph langchain-openai httpx python-dotenv
-    # .env next to the script:  OPENAI_API_KEY=sk-...  and  BRAVE_API_KEY=...
+    # .env next to the script:  OPENAI_API_KEY=sk-...  and  BRAVE_SEARCH_API_KEY=...
     python supervisor_agent.py
 
 ### web_search.py
@@ -424,7 +422,7 @@ re-running it automatically as a simple monitor (Ctrl+C to stop).
 search and the optional summary come straight from its API, with no reason to
 add another LLM of our own. A single API call is the right, simplest tool here.
 
-**Why not just ask ChatGPT to browse?** A chatbot gives a throwaway answer. This
+**Why not just chat with an AI assistant?** An AI assistant gives a throwaway answer. This
 pins your allowed/forbidden sites and time window exactly, returns structured,
 linkable results, and (with a timestamped file) saves each run, so repeating the
 same search builds an archive instead of a one-off.
@@ -449,13 +447,14 @@ to search, refines and searches again if the results are thin (up to
 `MAX_SEARCHES`), then answers with sources. If it already knows, it answers with
 zero searches.
 
-**Why this approach:** This is the one script in the repo that genuinely needs
-an agent. The number of steps is not known in advance (it depends on the
+**Why this approach:** An agent genuinely earns its place here — and this is the
+repo's *single*-agent example (`supervisor_agent` is the multi-agent step up). The
+number of steps is not known in advance (it depends on the
 question and on what each search returns), so the flow cannot be a fixed single
 call or a straight line. One tool is enough; the agency is in the decision
 (whether to search, how many times, when to stop), not in having many tools.
 
-**Why not just ChatGPT?** A browser chatbot can answer interactively. The script
+**Why not just chat with an AI assistant?** An AI assistant can answer interactively. The script
 makes it reproducible and scriptable: a fixed question, a bounded number of
 searches, and the answer saved with its exact sources to disk. It is also a
 clear, minimal example of how the decide-and-search loop actually works.
@@ -463,13 +462,15 @@ clear, minimal example of how the decide-and-search loop actually works.
 Run:
 
     pip install langgraph langchain-openai httpx python-dotenv
-    # .env next to the script:  OPENAI_API_KEY=sk-...  and  BRAVE_API_KEY=...
+    # .env next to the script:  OPENAI_API_KEY=sk-...  and  BRAVE_SEARCH_API_KEY=...
     python web_search_agent.py
 
 ## Running on a schedule
 
-Every script here is one-shot (it does its job and exits), so you can schedule any
-of them the normal way, no code needed:
+Most scripts here are one-shot (they do their job and exit), so you can schedule
+them the normal way, no code needed — skip the ones that already loop or wait for
+input (`scheduler`, `web_search` in REPEAT mode, and the interactive
+`form_from_interview`):
 
 - **Windows (Task Scheduler):** create a Basic Task, set a trigger (e.g. daily at
   08:00), and point the action at `python C:\path\to\script.py`. It runs even when
