@@ -20,7 +20,7 @@ Setup:
 # ================= CONFIG - edit these, then run =================
 FOLDER = r"C:\path\to\folder"
 RECURSIVE = False
-FILE_TYPES = []  # empty = all files; or [".pdf", ".jpg"] to limit
+FILE_TYPES = []  # [] = all files; or list any extensions to limit, e.g. [".pdf", ".jpg"]
 
 CATEGORIES = ["Invoices", "Contracts", "Reports", "Personal", "Other"]  # subfolders to sort into
 READ_CONTENT = False  # read .txt/.md content to classify (else filename only)

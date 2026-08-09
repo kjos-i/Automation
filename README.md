@@ -18,7 +18,7 @@ saving results to disk, and acting on your own files.
 | [doc_finder.py](#doc_finderpy) | semantic search over a folder of documents | single LLM call |
 | [folder_tidy.py](#folder_tidypy) | sorts a folder into category subfolders (LLM), safely | single LLM call |
 | [form_from_text.py](#form_from_textpy) | fills a form (your fields) from a long text, as JSON | single LLM call |
-| [form_interview.py](#form_interviewpy) | fills a form by chatting until it's complete, as JSON | conversational |
+| [form_from_interview.py](#form_from_interviewpy) | fills a form by chatting until it's complete, as JSON | conversational |
 | [local_llm.py](#local_llmpy) | run an instruction over a text with a local model (Ollama) | single LLM call (local) |
 | [mail_finder.py](#mail_finderpy) | semantic search over an exported mailbox | single LLM call |
 | [meeting_notes.py](#meeting_notespy) | turns a transcript into structured minutes | single LLM call |
@@ -26,7 +26,7 @@ saving results to disk, and acting on your own files.
 | [rename_files.py](#rename_filespy) | bulk-rename files in a folder, safely | rules, no LLM (optional LLM assist) |
 | [scheduler.py](#schedulerpy) | run any script here on a schedule (interval or daily) | stdlib, no LLM |
 | [summarize_folder.py](#summarize_folderpy) | summarizes every document in a folder into one index | map-reduce (Gemini) |
-| [supervisor_assistant.py](#supervisor_assistantpy) | routes a request to expert agents (web + your docs) and synthesizes | multi-agent supervisor (LangGraph) |
+| [supervisor_agent.py](#supervisor_agentpy) | routes a request to expert agents (web + your docs) and synthesizes | multi-agent supervisor (LangGraph) |
 | [web_search.py](#web_searchpy) | repeatable web search via Tavily, saved to disk | search API (Tavily) |
 | [web_search_agent.py](#web_search_agentpy) | answers a question, deciding whether and how often to web-search | ReAct agent (LangGraph) |
 
@@ -154,7 +154,7 @@ Run:
     # .env next to the script:  OPENAI_API_KEY=sk-...
     python form_from_text.py
 
-### form_interview.py
+### form_from_interview.py
 
 **Problem:** Sometimes the form data does not exist in a document yet, it is in
 someone's head. You want to collect a fixed set of fields from a person without
@@ -181,7 +181,7 @@ Run:
 
     pip install openai python-dotenv
     # .env next to the script:  OPENAI_API_KEY=sk-...
-    python form_interview.py
+    python form_from_interview.py
 
 ### local_llm.py
 
@@ -205,7 +205,7 @@ honest trade for privacy.)
 
 Run:
 
-    # install Ollama from https://ollama.com, then:  ollama pull llama3.1
+    # install Ollama from https://ollama.com, then:  ollama pull llama3.2:1b
     pip install ollama
     python local_llm.py
 
@@ -376,7 +376,7 @@ Run:
     # .env next to the script:  GEMINI_API_KEY=...
     python summarize_folder.py
 
-### supervisor_assistant.py
+### supervisor_agent.py
 
 **Problem:** Some requests span more than one domain at once, "how does my saved
 note on X compare to the latest online?" needs both your local files and the web,
@@ -406,7 +406,7 @@ Run:
 
     pip install langgraph langchain-openai httpx python-dotenv
     # .env next to the script:  OPENAI_API_KEY=sk-...  and  BRAVE_API_KEY=...
-    python supervisor_assistant.py
+    python supervisor_agent.py
 
 ### web_search.py
 

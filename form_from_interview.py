@@ -1,4 +1,4 @@
-"""form_interview.py - fill a form by chatting, saved as JSON.
+"""form_from_interview.py - fill a form by chatting, saved as JSON.
 
 The conversational companion to form_from_text.py, using the same FORM_FIELDS.
 It chats with you one question at a time, filling fields as you answer, and
@@ -13,7 +13,7 @@ Setup:
     pip install openai python-dotenv
     # put your key in a .env file next to this script:
     #   OPENAI_API_KEY=sk-...
-    python form_interview.py
+    python form_from_interview.py
 """
 
 # ================= CONFIG - edit these, then run =================

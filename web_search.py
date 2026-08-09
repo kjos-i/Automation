@@ -31,7 +31,7 @@ EXCLUDE_DOMAINS = []  # never these sites, e.g. ["pinterest.com"]
 INCLUDE_ANSWER = True  # also get Tavily's short AI summary
 
 SAVE_TO_FILE = False
-OUTPUT_FILE = r"C:\path\to\search_results.md"  # used only if SAVE_TO_FILE
+OUTPUT_FILE = r"C:\path\to\search_results.md"  # written as Markdown; keep .md (or .txt). Used only if SAVE_TO_FILE
 TIMESTAMP_FILENAME = True  # add date and time to the name (keeps a history)
 
 REPEAT = False  # re-run automatically on a cycle (Ctrl+C to stop)

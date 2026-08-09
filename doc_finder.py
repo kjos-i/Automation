@@ -26,7 +26,7 @@ Setup:
 # ================= CONFIG - edit these, then run =================
 # What to look for, in plain language. Interpreted broadly (synonyms and
 # related ideas count, not just the exact words).
-QUERY = "find all documents about machine learning"
+QUERY = "find all documents about trains" #"find all documents about machine learning"
 
 # The folder of documents to read.
 DOCS_FOLDER = r"C:\path\to\documents"

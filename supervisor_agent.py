@@ -1,4 +1,4 @@
-"""supervisor_assistant.py - a hand-built multi-agent supervisor (the capstone).
+"""supervisor_agent.py - a hand-built multi-agent supervisor (the capstone).
 
 One REQUEST in. A supervisor decides which expert *agent* should act next, lets it
 work, and repeats until it has enough to answer, then synthesizes the result.
@@ -22,8 +22,8 @@ Setup:
     pip install langgraph langchain-openai httpx python-dotenv
     # .env next to this script:
     #   OPENAI_API_KEY=sk-...
-    #   BRAVE_API_KEY=...
-    python supervisor_assistant.py
+    #   BRAVE_SEARCH_API_KEY=...
+    python supervisor_agent.py
 """
 
 # ================= CONFIG - edit these, then run =================
@@ -70,7 +70,7 @@ BRAVE_ENDPOINT = "https://api.search.brave.com/res/v1/web/search"
 @tool
 def web_search(query: str) -> str:
     """Search the web (Brave) for current or external information."""
-    headers = {"X-Subscription-Token": os.getenv("BRAVE_API_KEY", ""), "Accept": "application/json"}
+    headers = {"X-Subscription-Token": os.getenv("BRAVE_SEARCH_API_KEY", ""), "Accept": "application/json"}
     try:
         r = httpx.get(
             BRAVE_ENDPOINT, headers=headers, params={"q": query, "count": RESULTS_PER_SEARCH}, timeout=30
@@ -203,13 +203,22 @@ def docs_node(state: SupervisorState):
 
 def finalize_node(state: SupervisorState):
     llm = ChatOpenAI(model=MODEL, temperature=0)
+    # Collect the workers' findings (the [label]-tagged messages) as DATA to synthesize,
+    # rather than replaying them as prior assistant turns (which the model tends to just echo).
+    findings = "\n\n".join(
+        m.content for m in state["messages"] if isinstance(m, AIMessage) and m.content.startswith("[")
+    )
+    prompt = (
+        f"User request:\n{REQUEST}\n\n"
+        f"Findings gathered by the expert agents:\n{findings}\n\n"
+        "Write one clear answer to the request using ALL relevant findings. If the local "
+        "documents turned up nothing, still give the online information that was found "
+        "(do not just say you couldn't find a local note). Cite sources or filenames where given."
+    )
     msg = llm.invoke(
         [
-            SystemMessage(
-                content="Using the findings below, answer the user's request clearly. "
-                "Cite sources or filenames where given."
-            ),
-            *state["messages"],
+            SystemMessage(content="You synthesize the agents' findings into one clear, complete answer."),
+            HumanMessage(content=prompt),
         ]
     )
     return {"messages": [msg]}
@@ -233,12 +242,12 @@ supervisor = _graph.compile()
 
 
 def main() -> None:
-    missing = [k for k in ("OPENAI_API_KEY", "BRAVE_API_KEY") if not os.getenv(k)]
+    missing = [k for k in ("OPENAI_API_KEY", "BRAVE_SEARCH_API_KEY") if not os.getenv(k)]
     if missing:
         sys.exit(
             "Missing key(s) in .env next to this script: "
             + ", ".join(missing)
-            + "\n  OPENAI_API_KEY=sk-...\n  BRAVE_API_KEY=..."
+            + "\n  OPENAI_API_KEY=sk-...\n  BRAVE_SEARCH_API_KEY=..."
         )
 
     print(f"Request: {REQUEST}\n")

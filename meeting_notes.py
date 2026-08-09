@@ -19,11 +19,11 @@ Setup:
 """
 
 # ================= CONFIG - edit these, then run =================
-INPUT_FILE = r"C:\path\to\transcript.txt"  # the transcript to read
+INPUT_FILE = r"C:\path\to\transcript.txt"  # any text file (.txt/.md/.vtt/.srt...), not PDF/Word
 SOURCE_TEXT = ""  # ...or paste the transcript here if INPUT_FILE is blank/missing
 
 MODEL = "gpt-4o-mini"
-TEXT_CHAR_LIMIT = 40000  # transcripts can be long; cap what is sent
+TEXT_CHAR_LIMIT = 40000  # cap chars sent (bounds cost); None = no cap (send whole transcript)
 
 SAVE_TO_FILE = True
 OUTPUT_FILE = r"C:\path\to\minutes.md"  # used only if SAVE_TO_FILE

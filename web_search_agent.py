@@ -14,7 +14,7 @@ Setup:
     pip install langgraph langchain-openai httpx python-dotenv
     # put your keys in a .env file next to this script:
     #   OPENAI_API_KEY=sk-...
-    #   BRAVE_API_KEY=...
+    #   BRAVE_SEARCH_API_KEY=...
     python web_search_agent.py
 """
 
@@ -64,7 +64,7 @@ def web_search(query: str) -> str:
         query (str): What to search for.
     """
     headers = {
-        "X-Subscription-Token": os.getenv("BRAVE_API_KEY", ""),
+        "X-Subscription-Token": os.getenv("BRAVE_SEARCH_API_KEY", ""),
         "Accept": "application/json",
     }
     params = {"q": query, "count": RESULTS_PER_SEARCH}
@@ -160,12 +160,12 @@ def save_answer(question: str, answer: str, searches: list, path: str) -> None:
 
 
 def main() -> None:
-    missing = [k for k in ("OPENAI_API_KEY", "BRAVE_API_KEY") if not os.getenv(k)]
+    missing = [k for k in ("OPENAI_API_KEY", "BRAVE_SEARCH_API_KEY") if not os.getenv(k)]
     if missing:
         sys.exit(
             "Missing key(s) in .env next to this script: "
             + ", ".join(missing)
-            + "\n  OPENAI_API_KEY=sk-...\n  BRAVE_API_KEY=..."
+            + "\n  OPENAI_API_KEY=sk-...\n  BRAVE_SEARCH_API_KEY=..."
         )
 
     print(f"Question: {QUESTION}\n")

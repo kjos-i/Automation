@@ -27,18 +27,18 @@ FILE_TYPES = []  # empty = all files; or [".pdf", ".jpg"] to limit
 # --- Rule-based (no LLM, no dependencies) ---
 LOWERCASE = True
 SPACES_TO = "_"  # replace spaces with this; "" removes them; None leaves them
-DATE_PREFIX = False  # prefix with the file's modified date: 2026-08-04_
+DATE_PREFIX = True  # prefix with the file's modified date: 2026-08-04_
 SEQUENTIAL = False  # add a running number: 001_, 002_, ...
 STRIP_REGEX = ""  # delete text matching this regex, e.g. r"copy|final|\(1\)"
 
 # --- Optional LLM assist ---
 USE_LLM = False
 INSTRUCTION = "Make a short, clear, lowercase-hyphenated name."
-READ_CONTENT = False  # let the model read text-file content (.txt/.md only; costs tokens)
+READ_CONTENT = True  # let the model read text-file content (.txt/.md only; costs tokens)
 MODEL = "gpt-4o-mini"
 
 # --- Safety ---
-APPLY = False  # False = dry-run preview only; True = actually rename
+APPLY = True  # False = dry-run preview only; True = actually rename
 # ================================================================
 
 import os

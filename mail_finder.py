@@ -33,7 +33,7 @@ FOLDER_NAME = r"C:\path\to\matches"  # used only if SAVE_TO_NEW_FOLDER
 
 # Also write the match list to a file? (it always prints to the terminal)
 SAVE_LIST_TO_FILE = False
-LIST_FILE = r"C:\path\to\matches.md"  # used only if SAVE_LIST_TO_FILE
+LIST_FILE = r"C:\path\to\matches.md"  # written as Markdown; keep .md (or .txt). Used only if SAVE_LIST_TO_FILE
 
 MODEL = "gpt-4o-mini"  # cheap and capable
 MAX_EMAILS = 300  # cap the number scanned to bound cost; set to None for no limit

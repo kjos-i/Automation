@@ -27,7 +27,7 @@ FORM_FIELDS = [
     {"name": "phone", "description": "a phone number", "required": False},
 ]
 
-INPUT_FILE = r"C:\path\to\long_text.txt"  # the text to extract from
+INPUT_FILE = r"C:\path\to\long_text.txt"  # ONE text file (.txt/.md/.csv...), not a folder, not PDF/Word
 SOURCE_TEXT = ""  # ...or paste the text here if INPUT_FILE is left blank/missing
 
 MODEL = "gpt-4o-mini"

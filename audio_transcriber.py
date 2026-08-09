@@ -1,22 +1,15 @@
-"""audio_transcriber.py - transcribe audio/video to text.
+"""audio_transcriber.py - transcribe audio/video to text, locally.
 
 Point it at an audio (or video) file, or a folder of them, and it writes a .txt
-transcript for each. Two engines, one flag:
+transcript for each. Runs Whisper LOCALLY via faster-whisper: free, and the audio
+never leaves your machine. It downloads the model once (tiny ~75MB ... large ~3GB),
+then reuses it.
 
-  ENGINE = "faster-whisper"  -> runs Whisper LOCALLY. Free, and the audio never
-                               leaves your machine. Downloads the model once
-                               (tiny ~75MB ... large ~3GB), then reuses it.
-  ENGINE = "openai"          -> uses the cloud Whisper API. No setup, but pay per
-                               minute and the audio is uploaded (25MB per file).
-
-Local-first on purpose: this is the one script here where nothing has to leave
-your machine, which matters for confidential recordings.
+Local by design: this is the one script here where nothing has to leave your
+machine, which matters for confidential recordings.
 
 Setup:
-    # local (default):
     pip install faster-whisper
-    # cloud:
-    pip install openai python-dotenv        # and a .env with OPENAI_API_KEY=sk-...
     python audio_transcriber.py
 """
 
@@ -25,14 +18,12 @@ AUDIO = r"C:\path\to\audio_or_folder"  # a single file, or a folder of recording
 RECURSIVE = False  # if AUDIO is a folder, also search subfolders?
 FILE_TYPES = [".mp3", ".wav", ".m4a", ".mp4", ".ogg", ".flac", ".webm"]
 
-ENGINE = "faster-whisper"  # "faster-whisper" (local, free, private) | "openai" (cloud)
-MODEL = "base"  # faster-whisper size: tiny/base/small/medium/large (ignored for openai)
+MODEL = "base"  # faster-whisper size: tiny / base / small / medium / large
 LANGUAGE = None  # None = auto-detect; or a code like "en", "no"
 
 OUTPUT_DIR = ""  # where to write .txt transcripts; "" = next to each audio file
 # ================================================================
 
-import os
 import sys
 from pathlib import Path
 
@@ -48,40 +39,20 @@ def gather_audio() -> list:
     sys.exit(f"AUDIO not found: {AUDIO}")
 
 
-def make_local_transcriber():
+def make_transcriber():
     try:
         from faster_whisper import WhisperModel
     except ImportError:
-        sys.exit("faster-whisper engine needs: pip install faster-whisper")
-    print(f"Loading faster-whisper '{MODEL}' (first run downloads it)...")
+        sys.exit("This needs faster-whisper: pip install faster-whisper")
+    print(f"Loading faster-whisper '{MODEL}' (first run downloads the weights)...")
     model = WhisperModel(MODEL, device="auto", compute_type="default")
 
-    def transcribe(path: Path) -> str:
+    def transcriber(path: Path) -> str:
         kwargs = {"language": LANGUAGE} if LANGUAGE else {}
         segments, _info = model.transcribe(str(path), **kwargs)
         return " ".join(seg.text.strip() for seg in segments).strip()
 
-    return transcribe
-
-
-def make_openai_transcriber():
-    try:
-        from dotenv import load_dotenv
-        from openai import OpenAI
-    except ImportError:
-        sys.exit("openai engine needs: pip install openai python-dotenv")
-    load_dotenv()
-    if not os.getenv("OPENAI_API_KEY"):
-        sys.exit("openai engine needs OPENAI_API_KEY in a .env file next to this script.")
-    client = OpenAI()
-
-    def transcribe(path: Path) -> str:
-        kwargs = {"language": LANGUAGE} if LANGUAGE else {}
-        with open(path, "rb") as fh:
-            resp = client.audio.transcriptions.create(model="whisper-1", file=fh, **kwargs)
-        return resp.text.strip()
-
-    return transcribe
+    return transcriber
 
 
 def main() -> None:
@@ -90,12 +61,7 @@ def main() -> None:
         print("No matching audio files found.")
         return
 
-    if ENGINE == "faster-whisper":
-        transcribe = make_local_transcriber()
-    elif ENGINE == "openai":
-        transcribe = make_openai_transcriber()
-    else:
-        sys.exit(f"Unknown ENGINE: {ENGINE!r} (use 'faster-whisper' or 'openai')")
+    transcribe = make_transcriber()
 
     out_dir = Path(OUTPUT_DIR) if OUTPUT_DIR else None
     for path in files:

@@ -9,7 +9,7 @@ One ollama.chat() call. No agent, no cloud, no API key.
 
 Setup:
     # install Ollama from https://ollama.com, then pull a model once:
-    #   ollama pull llama3.1
+    #   ollama pull llama3.2:1b
     pip install ollama
     python local_llm.py
 """
@@ -19,7 +19,7 @@ INSTRUCTION = "Summarize this in 5 bullet points."  # what to do with the text
 INPUT_FILE = r"C:\path\to\document.txt"  # the text to process
 SOURCE_TEXT = ""  # ...or paste the text here if INPUT_FILE is blank/missing
 
-MODEL = "llama3.1"  # any model you have pulled in Ollama (e.g. llama3.1, qwen2.5, mistral)
+MODEL = "llama3.2:1b"  # any model you have pulled in Ollama (e.g. llama3.1, qwen2.5, mistral)
 TEXT_CHAR_LIMIT = 12000  # cap how much text is sent (fits the model's context)
 
 SAVE_TO_FILE = False

@@ -5,10 +5,6 @@ a single markdown index: an overview of the whole collection followed by a
 per-file summary. Reads .txt/.md out of the box; .pdf/.docx via optional
 pypdf/python-docx.
 
-Runs on Google Gemini on purpose: its very large context window suits long
-documents, so you can feed a lot of each file in one call. That is a real reason
-to pick Gemini here, which is why this is the repo's Gemini script.
-
 Design: a map-reduce - summarize each file (map), then summarize the summaries
 (reduce). No agent; the steps are fixed.
 
@@ -16,26 +12,27 @@ Setup:
     pip install google-genai python-dotenv
     # optional, for those formats:  pip install pypdf python-docx
     # put your key in a .env file next to this script:
-    #   GEMINI_API_KEY=...
+    #   GOOGLE_API_KEY=...
     python summarize_folder.py
 """
 
 # ================= CONFIG - edit these, then run =================
-FOLDER = r"C:\path\to\documents"
-RECURSIVE = True
+FOLDER =  r"C:\path\to\documents"
+RECURSIVE = False
 FILE_TYPES = [".txt", ".md"]  # add ".pdf" / ".docx" (needs pypdf / python-docx)
 
 SUMMARY_SENTENCES = 3  # rough length of each per-document summary
 OVERALL_SUMMARY = True  # also write an overview of the whole collection
 
-MODEL = "gemini-2.0-flash"  # Gemini: large context, fast, cheap
-CHAR_LIMIT = 20000  # how much of each document to send (Gemini handles a lot)
+MODEL = "gemini-3.5-flash-lite"  # a free-tier model; for higher quality use a bigger/Pro model (paid)
+CHAR_LIMIT = 20000  # how much of each document to send (Gemini handles a lot); None = no cap (whole document)
 
 OUTPUT_FILE = r"C:\path\to\SUMMARY.md"
 # ================================================================
 
 import os
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -43,7 +40,7 @@ from google import genai
 
 
 # --- Finding and reading documents ---
-def iter_documents():
+def iter_documents() -> Iterator[Path]:
     base = Path(FOLDER)
     if not base.is_dir():
         sys.exit(f"FOLDER not found or not a folder: {FOLDER}")
@@ -54,7 +51,7 @@ def iter_documents():
             yield p
 
 
-def read_document(path: Path):
+def read_document(path: Path) -> str | None:
     """Return the document's text, or None if it cannot be read."""
     suffix = path.suffix.lower()
     if suffix in (".txt", ".md"):
@@ -118,12 +115,12 @@ def build_report(summaries: list, overall: str) -> str:
 
 def main() -> None:
     load_dotenv()
-    if not os.getenv("GEMINI_API_KEY"):
+    if not os.getenv("GOOGLE_API_KEY"):
         sys.exit(
-            "No GEMINI_API_KEY found. Put it in a .env file next to this script:\n"
-            "  GEMINI_API_KEY=..."
+            "No GOOGLE_API_KEY found. Put it in a .env file next to this script:\n"
+            "  GOOGLE_API_KEY=..."
         )
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
     print(f"Summarizing documents in: {FOLDER}\n")
     summaries = []

@@ -25,3 +25,11 @@ Thumbs.db
 
 # Logs / local data
 *.log
+
+# Live-mail connectors (kept local, not part of the showcase)
+gmail_search.py
+outlook_cloud_search.py
+outlook_desktop_search.py
+
+# Local test data (audio, transcripts, corpora, outputs — never published)
+test_files/
