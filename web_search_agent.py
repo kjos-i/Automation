@@ -18,6 +18,8 @@ Setup:
     python web_search_agent.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 QUESTION = "What are the latest EU rules on battery recycling, and when do they take effect?"
 

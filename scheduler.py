@@ -14,6 +14,8 @@ Setup:
     python scheduler.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 SCRIPT = "web_search.py"  # a script in this folder to run on the schedule
 

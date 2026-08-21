@@ -16,6 +16,8 @@ Setup:
     python form_from_interview.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 FORM_NAME = "Contact intake"
 FORM_FIELDS = [

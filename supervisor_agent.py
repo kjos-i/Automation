@@ -26,6 +26,8 @@ Setup:
     python supervisor_agent.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 REQUEST = "How does my saved note on battery recycling compare to the latest online?"
 

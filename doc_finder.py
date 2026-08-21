@@ -23,6 +23,8 @@ Setup:
     python doc_finder.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 # What to look for, in plain language. Interpreted broadly (synonyms and
 # related ideas count, not just the exact words).

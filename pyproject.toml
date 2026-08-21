@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "automation"
+version = "0.1.0"
+description = "Small everyday-automation scripts, each demonstrating the right tool for the task."
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [{ name = "Ingrid Kjos" }]
+license = { text = "MIT" }
+# Only python-dotenv: 15 of the 18 scripts load a .env, and it is tiny and pure
+# Python. Everything else is opt-in below, because the point of the repo is that
+# each script carries its own small dependency rather than one big install.
+dependencies = ["python-dotenv>=1.2,<2"]
+
+[project.optional-dependencies]
+# Desktop GUI (gui/). Flet is pinned to the 0.85 line to match Epistemon, whose
+# _styles.py this GUI is trimmed from; the 0.85 API (ft.Border.all,
+# ft.Padding.only, Dropdown.on_select) is not compatible either side of it.
+# keyring is for the Keys dialog, which holds API keys in Windows Credential
+# Manager instead of on disk.
+gui = [
+    "flet>=0.85,<0.86",
+    "keyring>=25,<26",
+]
+# One extra per provider family, matching the scripts' own `Setup:` lines. The
+# grouping is deliberately coarser than one-per-script so the two places do not
+# drift line by line.
+openai = ["openai>=1.0,<2"]                       # 11 scripts
+anthropic = ["anthropic>=0.40,<1"]                # doc_finder
+google = ["google-genai>=1,<2"]                   # summarize_folder
+tavily = ["tavily-python>=0.5,<1"]                # web_search
+agents = [                                        # web_search_agent, supervisor_agent
+    "langgraph>=1.2,<2",
+    "langchain-openai>=0.3,<1",
+    "httpx>=0.27,<1",
+]
+local = ["ollama>=0.4,<1"]                        # local_llm (the daemon installs separately)
+transcribe = ["faster-whisper>=1.1,<2"]           # audio_transcriber
+docs = ["pypdf>=6.15,<7", "python-docx>=1.1,<2"]  # optional readers for doc_finder, summarize_folder
+outlook-desktop = ["pywin32>=306"]                # outlook_desktop_search, Windows only
+
+[project.scripts]
+# `automation` opens the GUI. A console script rather than a gui-script on
+# purpose: a command typed in a terminal should report back to that terminal,
+# so a startup error is visible. The desktop shortcut is the windowless path,
+# via pythonw.exe.
+automation = "gui.app:main"
+
+# The `gui/` folder installs under its own name. Renaming it on install (to
+# avoid claiming a name as generic as `gui` in a venv shared with Epistemon and
+# the others) is not possible here: hatchling refuses a `sources` rewrite that
+# CHANGES a prefix for an editable install, and editable is what we want so
+# edits to gui/*.py take effect without reinstalling. Nothing else in the venv
+# provides a top-level `gui`, checked 2026-08-17.
+[tool.hatch.build.targets.wheel]
+packages = ["gui"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"

@@ -16,6 +16,8 @@ Setup:
     python summarize_folder.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 FOLDER =  r"C:\path\to\documents"
 RECURSIVE = False

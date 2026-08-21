@@ -19,6 +19,8 @@ Setup:
     python rename_files.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 FOLDER = r"C:\path\to\folder"
 RECURSIVE = False

@@ -1,7 +1,8 @@
 # Automation
 
-A set of small, single-purpose scripts — each does one everyday task with the
-simplest tool that fits it, rather than forcing one pattern onto every problem.
+A set of small, single-purpose [scripts](#scripts) — each does one everyday task
+with the simplest tool that fits it, rather than forcing one pattern onto every
+problem.
 Some use no AI at all (plain Python: rename files, draw a random sample, run
 something on a schedule); some make a single LLM call; some call a search or
 speech-to-text service; and a couple are full agents, for the jobs that genuinely
@@ -11,6 +12,14 @@ Each script's section also notes when an AI assistant could have done the same
 thing — and why the script still earns its place: scale (batching hundreds of
 items), repeatability (one command, re-run anytime), saving results to disk, and
 acting on your own files.
+
+Every script is a plain file you can open, read and run with `python name.py`.
+There is also a [window](#the-window) that lists them and runs them for you. It
+reads the scripts; it never rewrites them, so both ways of working stay true at
+once. And any of them can be left to run unattended, through your operating
+system's [scheduler](#running-on-a-schedule) or the `scheduler.py` script.
+
+![The Automation window](images/gui.gif)
 
 ## Scripts
 
@@ -465,6 +474,53 @@ Run:
     # .env next to the script:  OPENAI_API_KEY=sk-...  and  BRAVE_SEARCH_API_KEY=...
     python web_search_agent.py
 
+## The window
+
+A small desktop app that lists the scripts and runs them, for the times you
+would rather click than edit a file.
+
+Run:
+
+    pip install -e ".[gui]"
+    automation
+
+**It shows you the script, not a form someone wrote about the script.** The
+right-hand pane is the script's own `CONFIG` block, rendered line by line: the
+constant name, an editable box holding the value exactly as it is written in the
+file, and the script's own trailing comment beside it as the help text. Nothing
+on that pane was authored for the window, which is why a new script needs no
+code anywhere to appear correctly.
+
+**It never edits your scripts.** Press Run and it builds a copy in memory with
+your values substituted, writes it beside the original, runs that, and deletes
+it. The file you opened in your editor is untouched, so the same script keeps
+behaving identically from a terminal.
+
+**What each part does:**
+
+- **ⓘ** next to the filename opens the script's docstring: what it does, what it
+  needs installed, where anything it downloads is stored.
+- **Keys** holds your API keys and mailbox credentials in Windows Credential
+  Manager rather than a file, and passes them to a run as environment variables.
+  They are never written into a script or onto disk in plain text. Press Run with
+  one missing and the window says so instead of letting the script fail.
+- **Check installs** reports what each script needs, read from its own `import`
+  statements rather than its setup notes, so it cannot drift. It distinguishes
+  required packages from optional ones the script degrades without, and from ones
+  needed only in a particular mode. **Install missing** and **Uninstall** act on
+  that list, and Uninstall names anything a neighbouring project also depends on
+  before it removes it.
+- **Add scripts** chooses which of the scripts appear in the list on the left.
+
+**Which scripts appear.** A script is listed when it says `GUI = True` above its
+`CONFIG` block. Ticking it in Add scripts writes that line for you, unticking
+writes `GUI = False`, and a script with no such line stays out. So a half-finished
+one in the folder never shows up in the window, and the file itself says whether
+it belongs there.
+
+Built with [Flet](https://flet.dev). The window is an addition to the folder, not
+a replacement for it: ignore it entirely and nothing is lost.
+
 ## Running on a schedule
 
 Most scripts here are one-shot (they do their job and exit), so you can schedule
@@ -480,3 +536,4 @@ input (`scheduler`, `web_search` in REPEAT mode, and the interactive
 
 For a quick "keep re-running while I'm working" loop without the OS scheduler,
 `web_search.py` has a built-in `REPEAT` / `CYCLE_MINUTES` option (Ctrl+C to stop).
+

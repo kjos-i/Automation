@@ -14,6 +14,8 @@ Setup:
     python local_llm.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 INSTRUCTION = "Summarize this in 5 bullet points."  # what to do with the text
 INPUT_FILE = r"C:\path\to\document.txt"  # the text to process

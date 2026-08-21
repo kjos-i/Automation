@@ -16,6 +16,8 @@ Setup:
     python form_from_text.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 # The form to fill. Each field has a name and a plain-language description the
 # model uses to find it. Change these to whatever form you need.

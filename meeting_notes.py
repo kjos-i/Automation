@@ -18,6 +18,8 @@ Setup:
     python meeting_notes.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 INPUT_FILE = r"C:\path\to\transcript.txt"  # any text file (.txt/.md/.vtt/.srt...), not PDF/Word
 SOURCE_TEXT = ""  # ...or paste the transcript here if INPUT_FILE is blank/missing

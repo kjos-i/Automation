@@ -12,6 +12,8 @@ Setup:
     python random_picker.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 SOURCE = r"C:\path\to\folder"  # a folder, OR a .txt file (one item per line), OR "" to use ITEMS
 ITEMS = []  # inline list, used only if SOURCE is blank

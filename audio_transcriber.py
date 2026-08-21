@@ -3,7 +3,9 @@
 Point it at an audio (or video) file, or a folder of them, and it writes a .txt
 transcript for each. Runs Whisper LOCALLY via faster-whisper: free, and the audio
 never leaves your machine. It downloads the model once (tiny ~75MB ... large ~3GB),
-then reuses it.
+then reuses it. The weights go to the shared Hugging Face cache at
+~/.cache/huggingface/hub - the same path on Windows, macOS and Linux (on Windows
+"~" is your C:/Users/<name> folder). Set HF_HOME to keep them somewhere else.
 
 Local by design: this is the one script here where nothing has to leave your
 machine, which matters for confidential recordings.
@@ -12,6 +14,8 @@ Setup:
     pip install faster-whisper
     python audio_transcriber.py
 """
+
+GUI = True  # show this script in the Automation GUI window
 
 # ================= CONFIG - edit these, then run =================
 AUDIO = r"C:\path\to\audio_or_folder"  # a single file, or a folder of recordings

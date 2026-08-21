@@ -17,6 +17,8 @@ Setup:
     python web_search.py
 """
 
+GUI = True  # show this script in the Automation GUI window
+
 # ================= CONFIG - edit these, then run =================
 QUERY = "latest developments in battery recycling"
 
