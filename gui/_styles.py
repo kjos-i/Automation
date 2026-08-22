@@ -78,6 +78,17 @@ OUTPUT_SIZE = 14
 """Output pane text. Smaller than the form: it is a transcript, not something
 you edit."""
 
+INPUT_CONTENT_PADDING = 10
+"""Space between an input box's border and the text inside it. Set explicitly
+rather than left to Flutter's default, because the CONFIG form has to put a
+constant name and a comment on the same visual line as the value, and it can
+only do that if it knows where the value's text sits."""
+
+INPUT_TEXT_TOP = INPUT_CONTENT_PADDING + 1
+"""Top padding for text that must line up with text INSIDE an input box: the
+content padding plus the box's one-pixel border. Use this rather than a
+hand-tuned number, so the two move together."""
+
 
 # ---- text sizes -----------------------------------------------------------
 # Every size in the app is named here, so "make the text bigger" is a change in
@@ -151,6 +162,10 @@ def apply_input_box(control: ft.Control) -> ft.Control:
             control.bgcolor = PANEL_BG
         if control.text_style is None:
             control.text_style = ft.TextStyle(font_family=CODE_FONT, size=CODE_SIZE)
+        if control.content_padding is None:
+            control.content_padding = ft.Padding.symmetric(
+                vertical=INPUT_CONTENT_PADDING, horizontal=INPUT_CONTENT_PADDING
+            )
     return control
 
 

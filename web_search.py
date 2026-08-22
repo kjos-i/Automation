@@ -27,17 +27,17 @@ TOPIC = "general"  # "general" | "news"
 TIME_RANGE = None  # None | "day" | "week" | "month" | "year"
 MAX_RESULTS = 5
 
-INCLUDE_DOMAINS = []  # only search these sites, e.g. ["reuters.com"]
-EXCLUDE_DOMAINS = []  # never these sites, e.g. ["pinterest.com"]
+INCLUDE_DOMAINS = []  # Only search these sites, e.g. ["reuters.com"].
+EXCLUDE_DOMAINS = []  # Never these sites, e.g. ["pinterest.com"].
 
-INCLUDE_ANSWER = True  # also get Tavily's short AI summary
+INCLUDE_ANSWER = True  # Also get Tavily's short AI summary.
 
 SAVE_TO_FILE = False
-OUTPUT_FILE = r"C:\path\to\search_results.md"  # written as Markdown; keep .md (or .txt). Used only if SAVE_TO_FILE
-TIMESTAMP_FILENAME = True  # add date and time to the name (keeps a history)
+OUTPUT_FILE = r"C:\path\to\search_results.md"  # Written as Markdown; keep .md (or .txt). Used only if SAVE_TO_FILE.
+TIMESTAMP_FILENAME = True  # Add date and time to the name (keeps a history).
 
-REPEAT = False  # re-run automatically on a cycle (Ctrl+C to stop)
-CYCLE_MINUTES = 60  # minutes between runs when REPEAT is on
+REPEAT = False  # Re-run automatically on a cycle (Ctrl+C to stop).
+CYCLE_MINUTES = 60  # Minutes between runs when REPEAT is on.
 # ================================================================
 
 import os

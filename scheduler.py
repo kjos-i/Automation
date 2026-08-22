@@ -17,12 +17,12 @@ Setup:
 GUI = True  # show this script in the Automation GUI window
 
 # ================= CONFIG - edit these, then run =================
-SCRIPT = "web_search.py"  # a script in this folder to run on the schedule
+SCRIPT = "web_search.py"  # A script in this folder to run on the schedule.
 
 MODE = "interval"  # "interval" | "daily"
-EVERY_MINUTES = 60  # interval mode: minutes between runs
-AT_TIME = "08:00"  # daily mode: time of day, 24-hour HH:MM
-RUN_AT_START = True  # interval mode: also run once immediately when started
+EVERY_MINUTES = 60  # Interval mode: minutes between runs.
+AT_TIME = "08:00"  # Daily mode: time of day, 24-hour HH:MM.
+RUN_AT_START = True  # Interval mode: also run once immediately when started.
 # ================================================================
 
 import subprocess

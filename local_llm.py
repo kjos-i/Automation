@@ -17,15 +17,15 @@ Setup:
 GUI = True  # show this script in the Automation GUI window
 
 # ================= CONFIG - edit these, then run =================
-INSTRUCTION = "Summarize this in 5 bullet points."  # what to do with the text
-INPUT_FILE = r"C:\path\to\document.txt"  # the text to process
-SOURCE_TEXT = ""  # ...or paste the text here if INPUT_FILE is blank/missing
+INSTRUCTION = "Summarize this in 5 bullet points."  # What to do with the text.
+INPUT_FILE = r"C:\path\to\document.txt"  # The text to process.
+SOURCE_TEXT = ""  # ...or paste the text here if INPUT_FILE is blank/missing.
 
-MODEL = "llama3.2:1b"  # any model you have pulled in Ollama (e.g. llama3.1, qwen2.5, mistral)
-TEXT_CHAR_LIMIT = 12000  # cap how much text is sent (fits the model's context)
+MODEL = "llama3.2:1b"  # Any model you have pulled in Ollama (e.g. llama3.1, qwen2.5, mistral).
+TEXT_CHAR_LIMIT = 12000  # Cap how much text is sent (fits the model's context).
 
 SAVE_TO_FILE = False
-OUTPUT_FILE = r"C:\path\to\output.txt"  # used only if SAVE_TO_FILE
+OUTPUT_FILE = r"C:\path\to\output.txt"  # Used only if SAVE_TO_FILE.
 # ================================================================
 
 import sys

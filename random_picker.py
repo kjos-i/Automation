@@ -15,16 +15,16 @@ Setup:
 GUI = True  # show this script in the Automation GUI window
 
 # ================= CONFIG - edit these, then run =================
-SOURCE = r"C:\path\to\folder"  # a folder, OR a .txt file (one item per line), OR "" to use ITEMS
-ITEMS = []  # inline list, used only if SOURCE is blank
-FILE_TYPES = []  # folder source: limit types, e.g. [".pdf"]; empty = all files
-RECURSIVE = False  # folder source: include subfolders?
+SOURCE = r"C:\path\to\folder"  # A folder, OR a .txt file (one item per line), OR "" to use ITEMS.
+ITEMS = []  # Inline list, used only if SOURCE is blank.
+FILE_TYPES = []  # Folder source: limit types, e.g. [".pdf"]; empty = all files.
+RECURSIVE = False  # Folder source: include subfolders?
 
-COUNT = 1  # how many to pick
-SEED = None  # set an int for a reproducible pick; None = truly random
+COUNT = 1  # How many to pick.
+SEED = None  # Set an int for a reproducible pick; None = truly random.
 
-COPY_TO = r""  # folder source: copy the picked files here (blank = don't)
-SAVE_LIST_TO = r""  # write the picked list to this file (blank = don't)
+COPY_TO = r""  # Folder source: copy the picked files here (blank = don't).
+SAVE_LIST_TO = r""  # Write the picked list to this file (blank = don't).
 # ================================================================
 
 import random

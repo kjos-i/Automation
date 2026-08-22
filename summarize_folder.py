@@ -21,13 +21,13 @@ GUI = True  # show this script in the Automation GUI window
 # ================= CONFIG - edit these, then run =================
 FOLDER =  r"C:\path\to\documents"
 RECURSIVE = False
-FILE_TYPES = [".txt", ".md"]  # add ".pdf" / ".docx" (needs pypdf / python-docx)
+FILE_TYPES = [".txt", ".md"]  # Add ".pdf" / ".docx" (needs pypdf / python-docx).
 
-SUMMARY_SENTENCES = 3  # rough length of each per-document summary
-OVERALL_SUMMARY = True  # also write an overview of the whole collection
+SUMMARY_SENTENCES = 3  # Rough length of each per-document summary.
+OVERALL_SUMMARY = True  # Also write an overview of the whole collection.
 
-MODEL = "gemini-3.5-flash-lite"  # a free-tier model; for higher quality use a bigger/Pro model (paid)
-CHAR_LIMIT = 20000  # how much of each document to send (Gemini handles a lot); None = no cap (whole document)
+MODEL = "gemini-3.5-flash-lite"  # A free-tier model; for higher quality use a bigger/Pro model (paid).
+CHAR_LIMIT = 20000  # How much of each document to send (Gemini handles a lot); None = no cap (whole document).
 
 OUTPUT_FILE = r"C:\path\to\SUMMARY.md"
 # ================================================================

@@ -32,20 +32,20 @@ QUERY = "find all documents about trains" #"find all documents about machine lea
 
 # The folder of documents to read.
 DOCS_FOLDER = r"C:\path\to\documents"
-RECURSIVE = True  # also search subfolders?
-FILE_TYPES = [".txt", ".md"]  # add ".pdf" / ".docx" (needs pypdf / python-docx)
+RECURSIVE = True  # Also search subfolders?
+FILE_TYPES = [".txt", ".md"]  # Add ".pdf" / ".docx" (needs pypdf / python-docx).
 
 # Copy each matching document into a folder?
 SAVE_TO_NEW_FOLDER = False
-FOLDER_NAME = r"C:\path\to\matches"  # used only if SAVE_TO_NEW_FOLDER
+FOLDER_NAME = r"C:\path\to\matches"  # Used only if SAVE_TO_NEW_FOLDER.
 
 # Also write the match list to a file? (it always prints to the terminal)
 SAVE_LIST_TO_FILE = False
-LIST_FILE = r"C:\path\to\matches.md"  # used only if SAVE_LIST_TO_FILE
+LIST_FILE = r"C:\path\to\matches.md"  # Used only if SAVE_LIST_TO_FILE.
 
-MODEL = "claude-haiku-4-5-20251001"  # cheap and fast
-MAX_DOCS = 300  # cap the number scanned to bound cost; set to None for no limit
-CHAR_LIMIT = 6000  # how much of each document to send to the model
+MODEL = "claude-haiku-4-5-20251001"  # Cheap and fast.
+MAX_DOCS = 300  # Cap the number scanned to bound cost; set to None for no limit.
+CHAR_LIMIT = 6000  # How much of each document to send to the model.
 # ================================================================
 
 import json

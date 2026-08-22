@@ -21,14 +21,14 @@ Setup:
 GUI = True  # show this script in the Automation GUI window
 
 # ================= CONFIG - edit these, then run =================
-INPUT_FILE = r"C:\path\to\transcript.txt"  # any text file (.txt/.md/.vtt/.srt...), not PDF/Word
-SOURCE_TEXT = ""  # ...or paste the transcript here if INPUT_FILE is blank/missing
+INPUT_FILE = r"C:\path\to\transcript.txt"  # Any text file (.txt/.md/.vtt/.srt...), not PDF/Word.
+SOURCE_TEXT = ""  # ...or paste the transcript here if INPUT_FILE is blank/missing.
 
 MODEL = "gpt-4o-mini"
-TEXT_CHAR_LIMIT = 40000  # cap chars sent (bounds cost); None = no cap (send whole transcript)
+TEXT_CHAR_LIMIT = 40000  # Cap chars sent (bounds cost); None = no cap (send whole transcript).
 
 SAVE_TO_FILE = True
-OUTPUT_FILE = r"C:\path\to\minutes.md"  # used only if SAVE_TO_FILE
+OUTPUT_FILE = r"C:\path\to\minutes.md"  # Used only if SAVE_TO_FILE.
 # ================================================================
 
 import os

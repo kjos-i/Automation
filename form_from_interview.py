@@ -29,7 +29,7 @@ FORM_FIELDS = [
 
 MODEL = "gpt-4o-mini"
 SAVE_TO_FILE = True
-OUTPUT_FILE = r"C:\path\to\form_result.json"  # used only if SAVE_TO_FILE
+OUTPUT_FILE = r"C:\path\to\form_result.json"  # Used only if SAVE_TO_FILE.
 # ================================================================
 
 import json

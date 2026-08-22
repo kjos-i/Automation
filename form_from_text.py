@@ -29,14 +29,14 @@ FORM_FIELDS = [
     {"name": "phone", "description": "a phone number", "required": False},
 ]
 
-INPUT_FILE = r"C:\path\to\long_text.txt"  # ONE text file (.txt/.md/.csv...), not a folder, not PDF/Word
-SOURCE_TEXT = ""  # ...or paste the text here if INPUT_FILE is left blank/missing
+INPUT_FILE = r"C:\path\to\long_text.txt"  # ONE text file (.txt/.md/.csv...), not a folder, not PDF/Word.
+SOURCE_TEXT = ""  # ...or paste the text here if INPUT_FILE is left blank/missing.
 
 MODEL = "gpt-4o-mini"
-TEXT_CHAR_LIMIT = 12000  # cap how much text is sent, to bound cost
+TEXT_CHAR_LIMIT = 12000  # Cap how much text is sent, to bound cost.
 
 SAVE_TO_FILE = True
-OUTPUT_FILE = r"C:\path\to\form_result.json"  # used only if SAVE_TO_FILE
+OUTPUT_FILE = r"C:\path\to\form_result.json"  # Used only if SAVE_TO_FILE.
 # ================================================================
 
 import json

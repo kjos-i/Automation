@@ -31,15 +31,15 @@ GUI = True  # show this script in the Automation GUI window
 # ================= CONFIG - edit these, then run =================
 REQUEST = "How does my saved note on battery recycling compare to the latest online?"
 
-DOCS_FOLDER = r"C:\path\to\documents"  # the folder the docs agent searches
+DOCS_FOLDER = r"C:\path\to\documents"  # The folder the docs agent searches.
 
 MODEL = "gpt-4o-mini"
-MAX_STEPS = 4  # cap on worker delegations before the supervisor must answer
+MAX_STEPS = 4  # Cap on worker delegations before the supervisor must answer.
 RESULTS_PER_SEARCH = 5
 DOC_CHAR_LIMIT = 4000
 
 SAVE_ANSWER_TO_FILE = False
-OUTPUT_FILE = r"C:\path\to\answer.md"  # used only if SAVE_ANSWER_TO_FILE
+OUTPUT_FILE = r"C:\path\to\answer.md"  # Used only if SAVE_ANSWER_TO_FILE.
 # ================================================================
 
 import os

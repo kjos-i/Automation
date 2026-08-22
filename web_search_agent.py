@@ -24,11 +24,11 @@ GUI = True  # show this script in the Automation GUI window
 QUESTION = "What are the latest EU rules on battery recycling, and when do they take effect?"
 
 MODEL = "gpt-4o-mini"
-MAX_SEARCHES = 3  # hard cap on how many times the agent may search before it must answer
+MAX_SEARCHES = 3  # Hard cap on how many times the agent may search before it must answer.
 RESULTS_PER_SEARCH = 5
 
 SAVE_ANSWER_TO_FILE = False
-OUTPUT_FILE = r"C:\path\to\answer.md"  # used only if SAVE_ANSWER_TO_FILE
+OUTPUT_FILE = r"C:\path\to\answer.md"  # Used only if SAVE_ANSWER_TO_FILE.
 # ================================================================
 
 import os

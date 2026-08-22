@@ -18,14 +18,14 @@ Setup:
 GUI = True  # show this script in the Automation GUI window
 
 # ================= CONFIG - edit these, then run =================
-AUDIO = r"C:\path\to\audio_or_folder"  # a single file, or a folder of recordings
-RECURSIVE = False  # if AUDIO is a folder, also search subfolders?
+AUDIO = r"C:\path\to\audio_or_folder"  # A single file, or a folder of recordings.
+RECURSIVE = False  # If AUDIO is a folder, also search subfolders?
 FILE_TYPES = [".mp3", ".wav", ".m4a", ".mp4", ".ogg", ".flac", ".webm"]
 
 MODEL = "base"  # faster-whisper size: tiny / base / small / medium / large
-LANGUAGE = None  # None = auto-detect; or a code like "en", "no"
+LANGUAGE = None  # None = auto-detect; or a code like "en", "no".
 
-OUTPUT_DIR = ""  # where to write .txt transcripts; "" = next to each audio file
+OUTPUT_DIR = ""  # Where to write .txt transcripts; "" = next to each audio file.
 # ================================================================
 
 import sys

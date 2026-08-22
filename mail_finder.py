@@ -31,15 +31,15 @@ SOURCE_TYPE = "auto"  # "auto" | "mbox" | "eml" | "maildir"
 
 # Copy each matching email (as .eml) into a folder?
 SAVE_TO_NEW_FOLDER = False
-FOLDER_NAME = r"C:\path\to\matches"  # used only if SAVE_TO_NEW_FOLDER
+FOLDER_NAME = r"C:\path\to\matches"  # Used only if SAVE_TO_NEW_FOLDER.
 
 # Also write the match list to a file? (it always prints to the terminal)
 SAVE_LIST_TO_FILE = False
-LIST_FILE = r"C:\path\to\matches.md"  # written as Markdown; keep .md (or .txt). Used only if SAVE_LIST_TO_FILE
+LIST_FILE = r"C:\path\to\matches.md"  # Written as Markdown; keep .md (or .txt). Used only if SAVE_LIST_TO_FILE.
 
-MODEL = "gpt-4o-mini"  # cheap and capable
-MAX_EMAILS = 300  # cap the number scanned to bound cost; set to None for no limit
-BODY_CHAR_LIMIT = 4000  # how much of each email body to send to the model
+MODEL = "gpt-4o-mini"  # Cheap and capable.
+MAX_EMAILS = 300  # Cap the number scanned to bound cost; set to None for no limit.
+BODY_CHAR_LIMIT = 4000  # How much of each email body to send to the model.
 # ================================================================
 
 import json

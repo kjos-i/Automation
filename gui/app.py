@@ -47,6 +47,7 @@ from _styles import (
     CODE_NAME_COLOR,
     ERROR_COLOR,
     ERROR_SIZE,
+    INPUT_TEXT_TOP,
     OUTPUT_SIZE,
     PAGE_BG,
     PANEL_TITLE_SIZE,
@@ -869,8 +870,8 @@ class AutomationGui:
         self.page.update()
 
     def _field_rows(self, script: catalog.Script, field: catalog.Field) -> list[ft.Control]:
-        """One CONFIG line: `NAME = [value]  # comment`, plus a hidden error
-        line underneath that only fills in when the value will not parse."""
+        """One CONFIG line: `NAME = [value]  comment`, plus a hidden error line
+        underneath that only fills in when the value will not parse."""
         control = self._input_for(script, field)
         self._inputs[field.name] = control
 
@@ -891,29 +892,40 @@ class AutomationGui:
 
         comment: ft.Control = ft.Container()
         if field.comment:
-            comment = code_text(f"# {field.comment}", color=CODE_COMMENT_COLOR)
+            # No `#` in front. In the file it marks where the comment starts;
+            # here the column and the colour already say that, so it is noise.
+            comment = code_text(field.comment, color=CODE_COMMENT_COLOR)
 
         error = ft.Text("", size=ERROR_SIZE, color=ERROR_COLOR, visible=False)
         self._errors[field.name] = error
 
+        # A one-line box is CENTRED against, not measured from. Any top padding
+        # is a guess about how much space Flutter leaves around the text inside
+        # the box, and it was always out by a pixel or two. A multiline box is
+        # taller than its first line, so those rows do align to the top, with
+        # `INPUT_TEXT_TOP` putting the name level with line one.
+        tall = field.kind == "long_text"
+        top = INPUT_TEXT_TOP if tall else 0
         return [
             ft.Row(
-                vertical_alignment=ft.CrossAxisAlignment.START,
+                vertical_alignment=(
+                    ft.CrossAxisAlignment.START if tall else ft.CrossAxisAlignment.CENTER
+                ),
                 spacing=6,
                 controls=[
                     ft.Container(
                         width=NAME_COLUMN_WIDTH,
-                        padding=ft.Padding.only(top=14),
+                        padding=ft.Padding.only(top=top),
                         content=code_text(field.name, color=CODE_NAME_COLOR),
                     ),
                     ft.Container(
-                        padding=ft.Padding.only(top=14),
+                        padding=ft.Padding.only(top=top),
                         content=code_text("="),
                     ),
                     ft.Container(expand=3, content=value_cell),
                     ft.Container(
                         expand=2,
-                        padding=ft.Padding.only(top=14, left=6),
+                        padding=ft.Padding.only(top=top, left=6),
                         content=comment,
                     ),
                 ],

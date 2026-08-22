@@ -24,23 +24,23 @@ GUI = True  # show this script in the Automation GUI window
 # ================= CONFIG - edit these, then run =================
 FOLDER = r"C:\path\to\folder"
 RECURSIVE = False
-FILE_TYPES = []  # empty = all files; or [".pdf", ".jpg"] to limit
+FILE_TYPES = []  # Empty = all files; or [".pdf", ".jpg"] to limit.
 
 # --- Rule-based (no LLM, no dependencies) ---
 LOWERCASE = True
-SPACES_TO = "_"  # replace spaces with this; "" removes them; None leaves them
-DATE_PREFIX = True  # prefix with the file's modified date: 2026-08-04_
-SEQUENTIAL = False  # add a running number: 001_, 002_, ...
-STRIP_REGEX = ""  # delete text matching this regex, e.g. r"copy|final|\(1\)"
+SPACES_TO = "_"  # Replace spaces with this; "" removes them; None leaves them.
+DATE_PREFIX = True  # Prefix with the file's modified date: 2026-08-04_
+SEQUENTIAL = False  # Add a running number: 001_, 002_, ...
+STRIP_REGEX = ""  # Delete text matching this regex, e.g. r"copy|final|\(1\)".
 
 # --- Optional LLM assist ---
 USE_LLM = False
 INSTRUCTION = "Make a short, clear, lowercase-hyphenated name."
-READ_CONTENT = True  # let the model read text-file content (.txt/.md only; costs tokens)
+READ_CONTENT = True  # Let the model read text-file content (.txt/.md only; costs tokens).
 MODEL = "gpt-4o-mini"
 
 # --- Safety ---
-APPLY = True  # False = dry-run preview only; True = actually rename
+APPLY = True  # False = dry-run preview only; True = actually rename.
 # ================================================================
 
 import os
