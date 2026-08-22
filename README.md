@@ -503,6 +503,15 @@ name: a self-contained install with a vendored runtime, as opposed to a frozen
 build (PyInstaller, `flet pack`), which would compile the scripts away and take
 the editable folder with them.
 
+**A later version never touches your scripts.** It replaces the program and adds
+any scripts that are new in that release, and leaves every script you already
+have exactly as it is: your edits to its settings, and whether it appears in the
+window, which is the `GUI` line in the file itself. Your keys are untouched too,
+in Windows Credential Manager rather than in the folder. The trade is that a fix
+to a script you already have does not reach you by installing; you would
+download that one file from here, which is what the link at the foot of the Add
+scripts dialog is for.
+
 ## The window
 
 A small desktop app that lists the scripts and runs them, for the times you
