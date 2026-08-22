@@ -1,6 +1,6 @@
 # Automation
 
-A set of small, single-purpose [scripts](#scripts) — each does one everyday task
+A set of small, single-purpose [scripts](#scripts). Each does one everyday task
 with the simplest tool that fits it, rather than forcing one pattern onto every
 problem.
 Some use no AI at all (plain Python: rename files, draw a random sample, run
@@ -9,7 +9,7 @@ speech-to-text service; and a couple are full agents, for the jobs that genuinel
 need one.
 
 Each script's section also notes when an AI assistant could have done the same
-thing — and why the script still earns its place: scale (batching hundreds of
+thing, and why the script still earns its place: scale (batching hundreds of
 items), repeatability (one command, re-run anytime), saving results to disk, and
 acting on your own files.
 
@@ -18,6 +18,9 @@ There is also a [window](#the-window) that lists them and runs them for you. It
 reads the scripts; it never rewrites them, so both ways of working stay true at
 once. And any of them can be left to run unattended, through your operating
 system's [scheduler](#running-on-a-schedule) or the `scheduler.py` script.
+It will also come as an [installer](#installing) that ships a private Python
+runtime alongside these same plain script files, so it starts from an icon and
+the folder still opens in your editor.
 
 ![The Automation window](images/gui.gif)
 
@@ -54,12 +57,12 @@ them as text, ideally without uploading private audio anywhere.
 
 **Solution:** Point it at an audio/video file or a folder; it writes a `.txt`
 transcript for each (next to it, or in `OUTPUT_DIR`). It runs Whisper **locally**
-via faster-whisper — free, and the audio never leaves your machine. It downloads
+via faster-whisper: free, and the audio never leaves your machine. It downloads
 the chosen model size once (tiny ~75 MB … large ~3 GB), then reuses it; pick a
 size to trade speed for accuracy.
 
 **Why this approach:** Transcription is a solved, dedicated task (Whisper), not
-something to hand to a chat model. And it runs entirely on your machine — nothing
+something to hand to a chat model. And it runs entirely on your machine: nothing
 is uploaded, which matters for confidential recordings.
 
 **Why not just chat with an AI assistant?** You would upload each file by hand and could not batch a
@@ -456,7 +459,7 @@ to search, refines and searches again if the results are thin (up to
 `MAX_SEARCHES`), then answers with sources. If it already knows, it answers with
 zero searches.
 
-**Why this approach:** An agent genuinely earns its place here — and this is the
+**Why this approach:** An agent genuinely earns its place here, and this is the
 repo's *single*-agent example (`supervisor_agent` is the multi-agent step up). The
 number of steps is not known in advance (it depends on the
 question and on what each search returns), so the flow cannot be a fixed single
@@ -474,15 +477,36 @@ Run:
     # .env next to the script:  OPENAI_API_KEY=sk-...  and  BRAVE_SEARCH_API_KEY=...
     python web_search_agent.py
 
-## The window
+## Installing
 
-A small desktop app that lists the scripts and runs them, for the times you
-would rather click than edit a file.
+Two routes, the same files either way.
 
-Run:
+**From this repo, if you already have Python.** From the folder:
 
     pip install -e ".[gui]"
     automation
+
+The extras are per provider, so you install only what the scripts you actually
+use need: `".[gui,openai]"`, `".[gui,anthropic]"` and so on. `pyproject.toml`
+lists them all.
+
+**As an installer. Planned, not built yet.** One `Automation-Setup.exe`, a
+double-click, a desktop icon: no terminal, no pip, no cloning. It installs under
+your own user folder rather than `Program Files`, so it never asks for an
+administrator password.
+
+Nothing is compiled into that executable. What it puts on disk is an ordinary
+folder holding the same plain `.py` files as this repo, with its own Python
+beside them. So you can open that folder in an editor, run `python name.py`
+exactly as above, and drop a new script in whenever you like. The shape has a
+name: a self-contained install with a vendored runtime, as opposed to a frozen
+build (PyInstaller, `flet pack`), which would compile the scripts away and take
+the editable folder with them.
+
+## The window
+
+A small desktop app that lists the scripts and runs them, for the times you
+would rather click than edit a file. [Installing](#installing) is above.
 
 **It shows you the script, not a form someone wrote about the script.** The
 right-hand pane is the script's own `CONFIG` block, rendered line by line: the
@@ -510,7 +534,15 @@ behaving identically from a terminal.
   needed only in a particular mode. **Install missing** and **Uninstall** act on
   that list, and Uninstall names anything a neighbouring project also depends on
   before it removes it.
-- **Add scripts** chooses which of the scripts appear in the list on the left.
+- **Add scripts** chooses which of the scripts appear in the list on the left,
+  and at its foot links back to this repo, since an installed copy holds the
+  scripts as they were when it was built.
+- **The box under the output** answers a script that asks a question. The
+  output pane shows the question as soon as the script asks it, even though it
+  has printed no newline yet and is sitting waiting; type, press Enter, and your
+  answer joins the prompt on its line the way a terminal shows it.
+  `form_from_interview` is the script that works this way, and any script that
+  calls `input()` behaves the same.
 
 **Which scripts appear.** A script is listed when it says `GUI = True` above its
 `CONFIG` block. Ticking it in Add scripts writes that line for you, unticking
@@ -524,7 +556,7 @@ a replacement for it: ignore it entirely and nothing is lost.
 ## Running on a schedule
 
 Most scripts here are one-shot (they do their job and exit), so you can schedule
-them the normal way, no code needed — skip the ones that already loop or wait for
+them the normal way, no code needed. Skip the ones that already loop or wait for
 input (`scheduler`, `web_search` in REPEAT mode, and the interactive
 `form_from_interview`):
 

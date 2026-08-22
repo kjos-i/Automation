@@ -73,6 +73,15 @@ WINDOW_HEIGHT = 820
 WINDOW_MIN_WIDTH = 900
 WINDOW_MIN_HEIGHT = 600
 
+REPO_URL = "https://github.com/kjos-i/Automation"
+"""Where the scripts come from, linked at the foot of the Add-scripts dialog.
+
+That dialog lists every script on this machine, so it is where someone looking
+for one that is not there ends up; the link is the whole update mechanism. An
+installed copy is a snapshot of the scripts at build time, and the folder is the
+user's own, so getting a newer script means either downloading the file into the
+folder or re-running a newer installer. Both start here."""
+
 RAIL_WIDTH = 250
 """Fixed width for the script rail. Fixed rather than flexed so the code on the
 right keeps a stable line width as the window resizes."""
@@ -92,10 +101,11 @@ OUTPUT_MAX_LINES = 2000
 prints per-file over a large folder cannot grow the window's memory without
 limit. The full output is in the script's own files, not here."""
 
-OUTPUT_REFRESH_SECONDS = 0.08
+OUTPUT_REFRESH_SECONDS = 0.04
 """Minimum gap between repaints while output streams in. Without a throttle a
 fast-printing script triggers a full page update per line, which is slower than
-the script itself."""
+the script itself. Each repaint is also what moves the scroll, so this doubles
+as how smoothly the pane follows: 0.08 made the movement visibly steppy."""
 
 
 class AutomationGui:
@@ -114,6 +124,10 @@ class AutomationGui:
         # The current run, and its output buffer.
         self._run: runner.ScriptRun | None = None
         self._lines: list[str] = []
+        # Text the script has printed with no newline yet, held apart from
+        # `_lines` because the next chunk either completes it or, if it is a
+        # prompt, the answer is appended to it.
+        self._pending = ""
         self._last_paint = 0.0
 
         # Long-lived controls.
@@ -134,7 +148,26 @@ class AutomationGui:
         # stale answer from another script can never enable Install.
         self._missing: tuple[installs.Requirement, ...] = ()
         self._form = ft.Column(spacing=2, scroll=ft.ScrollMode.AUTO, expand=True)
-        self._output = ft.Text("", font_family="Consolas", size=OUTPUT_SIZE, selectable=True)
+        # One control per line, not one Text holding every line. `auto_scroll`
+        # follows the end only when the list of CHILDREN changes, so a single
+        # Text whose value grew never moved the view, and `scroll_to` on the
+        # Column did not either. Appending a child is what Flet reacts to.
+        self._output_list = ft.ListView(expand=True, auto_scroll=True, spacing=0)
+        # Complete lines already turned into controls, so a repaint appends the
+        # new ones instead of rebuilding two thousand.
+        self._rendered = 0
+        self._pending_control: ft.Text | None = None
+        # Every run gets a stdin pipe, so this box answers any script that asks
+        # a question. `form_from_interview` is the one that does today; nothing
+        # here knows that, and a script that never reads stdin just ignores it.
+        self._input = apply_input_box(
+            ft.TextField(
+                hint_text="Type an answer here and press Enter",
+                dense=True,
+                disabled=True,
+                on_submit=self._on_send,
+            )
+        )
         self._status = status_line(idle=True)
         self._run_button = ft.Button(content=ft.Text("Run"), on_click=self._on_run, disabled=True)
         self._stop_button = ft.Button(
@@ -253,13 +286,12 @@ class AutomationGui:
                     ft.Container(
                         expand=2,
                         padding=ft.Padding.only(top=4),
-                        content=ft.Column(
-                            expand=True,
-                            scroll=ft.ScrollMode.AUTO,
-                            auto_scroll=True,
-                            controls=[self._output],
-                        ),
+                        # Selection belongs to the area, not the lines: with one
+                        # Text per line, per-control selection would stop at the
+                        # end of whichever line you started in.
+                        content=ft.SelectionArea(content=self._output_list),
                     ),
+                    ft.Container(padding=ft.Padding.only(top=4), content=self._input),
                 ],
             ),
         )
@@ -390,8 +422,7 @@ class AutomationGui:
             return
         packages = sorted({r.package for r in self._missing})
         self._busy(True)
-        self._lines = []
-        self._output.value = ""
+        self._clear_output()
         self._set_status(f"Installing {', '.join(packages)}...")
         self.page.update()
         code = await installs.pip(["install", *packages], self._on_line)
@@ -483,8 +514,7 @@ class AutomationGui:
 
     async def _uninstall(self, packages: list[str]) -> None:
         self._busy(True)
-        self._lines = []
-        self._output.value = ""
+        self._clear_output()
         self._set_status(f"Uninstalling {', '.join(packages)}...")
         self.page.update()
         code = await installs.pip(["uninstall", "-y", *packages], self._on_line)
@@ -589,6 +619,25 @@ class AutomationGui:
                     ],
                 )
             )
+
+        # The foot of this dialog is where a missing script sends you: it lists
+        # everything on this machine, so anything not here has to come from the
+        # repo. `TextSpan(url=...)` opens the browser natively, which avoids
+        # `page.launch_url` (deprecated in 0.90) and needs no service.
+        rows.append(thin_rule())
+        rows.append(
+            ft.Text(
+                size=TILE_SUBTITLE_SIZE,
+                color=ft.Colors.GREY_400,
+                spans=[
+                    ft.TextSpan(
+                        "Check for new scripts and updates on GitHub",
+                        url=REPO_URL,
+                        style=ft.TextStyle(color=CODE_NAME_COLOR),
+                    )
+                ],
+            )
+        )
 
         def _save(_ev) -> None:
             changed, failed = 0, []
@@ -815,8 +864,7 @@ class AutomationGui:
         self._uninstall_button.disabled = False
         self._install_button.disabled = True
         self._run_button.disabled = False
-        self._lines = []
-        self._output.value = ""
+        self._clear_output()
         self._set_status(f"{len(script.fields)} setting(s). Edit and press Run.", idle=True)
         self.page.update()
 
@@ -1018,10 +1066,13 @@ class AutomationGui:
 
     def _start(self, script: catalog.Script, values: dict[str, str]) -> None:
         """Launch the script with the form's values. The only path that runs."""
-        self._lines = []
-        self._output.value = ""
+        self._clear_output()
         self._run_button.disabled = True
         self._stop_button.disabled = False
+        # Enabled for every run: which scripts ask a question is not knowable
+        # without running them, and an unused box costs nothing.
+        self._input.disabled = False
+        self._input.value = ""
         self._set_status(f"Running {script.path.name}...")
         self.page.update()
 
@@ -1029,6 +1080,7 @@ class AutomationGui:
             script=script,
             source=runner.build_source(script, values),
             on_line=self._on_line,
+            on_partial=self._on_partial,
             on_done=self._on_done,
             # Credentials go through the environment, never into the twin's
             # source, so nothing secret is ever written to disk.
@@ -1042,10 +1094,45 @@ class AutomationGui:
             self._run.stop()
             self.page.update()
 
+    def _on_send(self, _e: ft.Event) -> None:
+        self.page.run_task(self._send)
+
+    async def _send(self) -> None:
+        """Answer a script that is waiting on `input()`, and echo the answer.
+
+        The echo is the GUI's own. A terminal shows what you typed because the
+        terminal echoes it; a piped stdin does not, so without this the output
+        would hold every question and none of the answers.
+
+        The answer joins the prompt on its own line, the way a terminal shows
+        it: `input("You: ")` prints no newline, so that prompt is the pending
+        partial, and appending to it gives `You: my answer`. With nothing
+        pending, the script asked in some other way, so the answer stands alone
+        behind a `>`.
+        """
+        run = self._run
+        text = self._input.value or ""
+        if run is None:
+            self._set_status("Nothing is running.")
+            self.page.update()
+            return
+        self._input.value = ""
+        if await run.send(text):
+            self._on_line(f"{self._pending}{text}" if self._pending else f"> {text}")
+            self._pending = ""
+            self._paint_output()
+        else:
+            self._set_status("The script is no longer reading input.")
+        await self._input.focus()
+        self.page.update()
+
     def _on_line(self, line: str) -> None:
         self._lines.append(line)
-        if len(self._lines) > OUTPUT_MAX_LINES:
-            del self._lines[: len(self._lines) - OUTPUT_MAX_LINES]
+        dropped = len(self._lines) - OUTPUT_MAX_LINES
+        if dropped > 0:
+            del self._lines[:dropped]
+            # `_rendered` indexes into `_lines`, so it has to move with the cut.
+            self._rendered = max(0, self._rendered - dropped)
         now = time.monotonic()
         if now - self._last_paint >= OUTPUT_REFRESH_SECONDS:
             self._last_paint = now
@@ -1055,6 +1142,8 @@ class AutomationGui:
         self._run = None
         self._run_button.disabled = self.selected is None
         self._stop_button.disabled = True
+        self._input.disabled = True
+        self._input.value = ""
         self._paint_output()
         if code is None:
             self._set_status("Stopped.")
@@ -1064,9 +1153,50 @@ class AutomationGui:
             self._set_status(f"Finished with exit code {code}.")
         self.page.update()
 
+    def _on_partial(self, text: str) -> None:
+        """Show, or clear, the line the script is still writing.
+
+        Painted immediately, unlike `_on_line`. A prompt is the last thing a
+        blocked script sends, so a throttle that skipped this repaint would
+        leave the question invisible until the script produced more output,
+        which it never will. Cheap regardless: this fires once per chunk read
+        and only when the tail actually changed, so it is rarer than per line.
+        """
+        if text == self._pending:
+            return
+        self._pending = text
+        self._last_paint = time.monotonic()
+        self._paint_output()
+
     def _paint_output(self) -> None:
-        self._output.value = "\n".join(self._lines)
+        """Bring the list of controls level with the buffer.
+
+        Appends only what is new, so a long run does not rebuild the whole
+        pane. The pending line is always the last child and is thrown away and
+        remade each time, which is also what keeps `auto_scroll` following a
+        script that is printing without newlines.
+        """
+        controls = self._output_list.controls
+        if self._pending_control is not None:
+            controls.pop()
+            self._pending_control = None
+        for line in self._lines[self._rendered :]:
+            controls.append(_output_line(line))
+        self._rendered = len(self._lines)
+        excess = len(controls) - OUTPUT_MAX_LINES
+        if excess > 0:
+            del controls[:excess]
+        if self._pending:
+            self._pending_control = _output_line(self._pending)
+            controls.append(self._pending_control)
         self.page.update()
+
+    def _clear_output(self) -> None:
+        self._lines = []
+        self._pending = ""
+        self._rendered = 0
+        self._pending_control = None
+        self._output_list.controls.clear()
 
     def _set_status(self, text: str, *, idle: bool = False) -> None:
         self._status.value = text
@@ -1074,6 +1204,15 @@ class AutomationGui:
 
 
 # ----- small helpers -------------------------------------------------------
+
+
+def _output_line(text: str) -> ft.Text:
+    """One line of a run's output.
+
+    A blank line is drawn as a space: an empty `Text` collapses to no height,
+    and a script's blank lines are how its output is paragraphed.
+    """
+    return ft.Text(text or " ", font_family="Consolas", size=OUTPUT_SIZE)
 
 
 def _fill(container: ft.Column, controls: list[ft.Control]) -> None:

@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import ast
 import asyncio
+import codecs
 import contextlib
 import os
 import runpy
@@ -172,6 +173,14 @@ class ScriptRun:
     `on_line` is called for each line of the script's stdout and stderr, merged
     so a traceback appears in the output in the order it happened. `on_done` is
     called once with the exit code, or None if the run was stopped.
+
+    `on_partial` carries text the script has printed WITHOUT a newline yet, and
+    is called with "" once that text becomes a line. Prompts are the reason it
+    exists: `input("You: ")` writes its prompt and then blocks, so a reader that
+    waits for a newline shows the question only after it has been answered.
+
+    Stdin is a pipe, written through `send`, so a script that asks a question
+    can be answered from the window instead of hanging until Stop.
     """
 
     def __init__(
@@ -181,15 +190,18 @@ class ScriptRun:
         on_line: Callable[[str], None],
         on_done: Callable[[int | None], None],
         env: dict[str, str] | None = None,
+        on_partial: Callable[[str], None] | None = None,
     ) -> None:
         self.script = script
         self.source = source
         self.on_line = on_line
         self.on_done = on_done
+        self.on_partial = on_partial or (lambda _text: None)
         self.env = env
         self.twin = script.path.with_name(f"{TWIN_PREFIX}{script.path.stem}.py")
         self._proc: asyncio.subprocess.Process | None = None
         self._stopped = False
+        self._partial = ""
 
     async def start(self) -> None:
         """Run to completion. Await this from `page.run_task`."""
@@ -200,6 +212,7 @@ class ScriptRun:
                 *_command(self.twin),
                 cwd=str(self.script.path.parent),
                 env=_child_env(self.env),
+                stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.STDOUT,
                 # A generous line limit: the default 64 KB raises on any script
@@ -217,20 +230,61 @@ class ScriptRun:
             self.on_done(None if self._stopped else code)
 
     async def _pump(self) -> None:
-        """Forward the child's output a line at a time until it closes."""
+        """Forward the child's output until it closes.
+
+        Reads whatever has arrived rather than waiting for a newline, so an
+        unterminated prompt reaches the window while the script is still
+        blocked on it. `read` returns as soon as there are any bytes, so this
+        is no less live than `readline` was.
+
+        An incremental decoder because a chunk boundary can fall in the middle
+        of a multi-byte character, which a per-chunk `decode` would turn into
+        replacement characters.
+        """
         stream = self._proc.stdout if self._proc else None
         if stream is None:
             return
+        decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
         while True:
-            try:
-                raw = await stream.readline()
-            except (ValueError, asyncio.LimitOverrunError):
-                # A line longer than the limit above. Take what is buffered
-                # rather than ending the run.
-                raw = await stream.read(65536)
-            if not raw:
+            chunk = await stream.read(8192)
+            if not chunk:
+                if self._partial:
+                    self.on_line(self._partial)
+                    self._partial = ""
+                self.on_partial("")
                 return
-            self.on_line(raw.decode("utf-8", errors="replace").rstrip("\r\n"))
+            self._partial += decoder.decode(chunk)
+            *complete, self._partial = self._partial.split("\n")
+            for line in complete:
+                self.on_line(line.rstrip("\r"))
+            self.on_partial(self._partial)
+
+    async def send(self, text: str) -> bool:
+        """Answer a script waiting on `input()`. True if the line was written.
+
+        Every run gets a stdin pipe, not just the ones that ask questions: a
+        script that never reads it is unaffected, and the alternative would be
+        the GUI deciding in advance which scripts are interactive, which it
+        cannot know without running them.
+
+        False rather than an exception when the script has already exited, since
+        the box can still hold a half-typed line when a run ends.
+        """
+        proc = self._proc
+        if proc is None or proc.stdin is None or proc.returncode is not None:
+            return False
+        try:
+            proc.stdin.write(f"{text}\n".encode())
+            await proc.stdin.drain()
+        except (BrokenPipeError, ConnectionResetError, OSError):
+            # The script exited between the check above and the write.
+            return False
+        # The prompt this answers is the pending partial, and the caller has
+        # just shown it with the answer on the end. Drop it, or the script's
+        # next newline would emit it a second time as a line of its own.
+        self._partial = ""
+        self.on_partial("")
+        return True
 
     def stop(self) -> None:
         """Ask the script to stop, then insist.
