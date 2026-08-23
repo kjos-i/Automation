@@ -43,6 +43,21 @@ PINNED = [  # Only what the WINDOW needs; each script's own packages are
 ]
 # ================================================================
 
+DEBUG_CMD = """@echo off
+rem Same window, with a console attached so you can see what went wrong.
+rem
+rem The shortcut runs pythonw.exe, which shows no console, so a failure before
+rem the window appears is silent: double-clicking looks like nothing happened.
+rem Run this instead and the reason is printed here.
+cd /d "%~dp0"
+"%~dp0python\\python.exe" "%~dp0gui\\app.py"
+echo.
+echo Automation exited with code %errorlevel%.
+pause
+"""
+"""Written into the built folder rather than kept in the repo: it runs the
+bundled Python, which only exists in an installed copy."""
+
 REPO = Path(__file__).resolve().parent.parent
 BUILD = REPO / "build"
 CACHE = BUILD / "cache"
@@ -137,6 +152,9 @@ def main() -> None:
         target = OUT / path.relative_to(REPO)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, target)
+
+    print("debug.cmd")
+    (OUT / "debug.cmd").write_text(DEBUG_CMD, encoding="utf-8")
 
     scripts = [p for p in files if p.suffix == ".py" and p.parent == REPO]
     size = sum(f.stat().st_size for f in OUT.rglob("*") if f.is_file()) // 1048576
