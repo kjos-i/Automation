@@ -77,6 +77,21 @@ def clear(name: str) -> None:
         raise
 
 
+def clear_many(names: tuple[str, ...] | list[str]) -> int:
+    """Remove every stored value among `names`. Returns how many were there.
+
+    Used by the uninstaller, which offers to take the credentials with it. They
+    live in Windows Credential Manager rather than in the app's folder, so
+    deleting the folder would otherwise leave them behind for good.
+    """
+    removed = 0
+    for name in names:
+        if is_set(name):
+            clear(name)
+            removed += 1
+    return removed
+
+
 def as_env(names: tuple[str, ...] | list[str]) -> dict[str, str]:
     """The stored values among `names`, ready to merge into a run's environment.
 

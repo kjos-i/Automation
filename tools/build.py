@@ -99,6 +99,57 @@ def shipped_files() -> list[Path]:
     return [REPO / f for f in listed if not f.startswith(skip)]
 
 
+def secret_values() -> dict[str, bytes]:
+    """The real secrets from `.env`, to search the build for.
+
+    Short values are skipped: a port number or a database name would match
+    somewhere in 4,000 files and say nothing.
+    """
+    env = REPO / ".env"
+    if not env.exists():
+        return {}
+    found: dict[str, bytes] = {}
+    for line in env.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, _, value = line.partition("=")
+        value = value.strip().strip("\"'")
+        if len(value) >= 12:
+            found[name.strip()] = value.encode()
+    return found
+
+
+def assert_no_secrets() -> None:
+    """Refuse to ship a folder containing a real credential.
+
+    `git ls-files` should already make this impossible, since a file that
+    cannot be published cannot be packaged either. This checks the ARTEFACT
+    rather than the rule, so the guarantee does not rest on `.gitignore`
+    staying correct, and it fails the build loudly instead of shipping quietly.
+
+    Nothing is printed but names and a verdict, so running the build never puts
+    a secret on screen or in a log.
+    """
+    secrets = secret_values()
+    if not secrets:
+        print("  no .env to check against")
+        return
+    files = [p for p in OUT.rglob("*") if p.is_file()]
+    leaked: list[str] = []
+    for path in files:
+        try:
+            blob = path.read_bytes()
+        except OSError:
+            continue
+        for name, value in secrets.items():
+            if value in blob:
+                leaked.append(f"{name} in {path.relative_to(OUT)}")
+    if leaked:
+        raise SystemExit("REFUSED, a secret is in the build:\n  " + "\n  ".join(leaked))
+    print(f"  {len(files)} file(s) checked against {len(secrets)} secret(s): clean")
+
+
 def main() -> None:
     if OUT.exists():
         print(f"clearing {OUT}")
@@ -155,6 +206,9 @@ def main() -> None:
 
     print("debug.cmd")
     (OUT / "debug.cmd").write_text(DEBUG_CMD, encoding="utf-8")
+
+    print("secret scan")
+    assert_no_secrets()
 
     scripts = [p for p in files if p.suffix == ".py" and p.parent == REPO]
     size = sum(f.stat().st_size for f in OUT.rglob("*") if f.is_file()) // 1048576

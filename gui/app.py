@@ -243,6 +243,29 @@ class AutomationGui:
                     ),
                     thin_rule(),
                     self._rail_list,
+                    # Below the list, where a quiet link belongs. The other
+                    # GitHub link is at the foot of Add scripts, which nobody
+                    # opens when they are stuck; this one is where help is
+                    # looked for. A link rather than a button, so the rail
+                    # keeps its two clean choices.
+                    # Closed off by the same rule that sits under the Scripts
+                    # heading, so the link reads as its own footer rather than
+                    # as one more entry in the list.
+                    thin_rule(),
+                    ft.Container(
+                        padding=ft.Padding.only(bottom=SECTION_GAP),
+                        content=ft.Text(
+                            size=TILE_SUBTITLE_SIZE,
+                            color=ft.Colors.GREY_400,
+                            spans=[
+                                ft.TextSpan(
+                                    "Help on GitHub",
+                                    url=REPO_URL,
+                                    style=ft.TextStyle(color=CODE_NAME_COLOR),
+                                )
+                            ],
+                        ),
+                    ),
                 ],
             ),
         )
@@ -698,10 +721,15 @@ class AutomationGui:
     def _credential_names(self) -> list[str]:
         """Every credential the scripts read, across the whole folder.
 
-        Unfiltered by the slice-1 list on purpose: the dialog is global, so it
-        should show the same set whichever scripts happen to be listed."""
+        `only_shown=False` on purpose: a script is hidden because it is not
+        ready to be listed, not because its credentials stopped existing. The
+        file is still in the folder and still runs from a terminal, so its keys
+        belong in the dialog. Filtering here also disagreed with
+        `clear_keys.py`, which clears the unfiltered set, so the uninstaller
+        would have removed keys this dialog never showed.
+        """
         found: set[str] = set()
-        for script in catalog.discover():
+        for script in catalog.discover(only_shown=False):
             found.update(script.env_vars)
         return sorted(found)
 

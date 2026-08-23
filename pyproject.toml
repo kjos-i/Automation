@@ -45,6 +45,14 @@ local = ["ollama>=0.4,<1"]                        # local_llm (the daemon instal
 transcribe = ["faster-whisper>=1.1,<2"]           # audio_transcriber
 docs = ["pypdf>=6.15,<7", "python-docx>=1.1,<2"]  # optional readers for doc_finder, summarize_folder
 outlook-desktop = ["pywin32>=306"]                # outlook_desktop_search, Windows only
+# The checks that run at every commit. See .pre-commit-config.yaml, and note
+# that installing this is not enough on its own: `pre-commit install` writes
+# the hook, and without that step the config does nothing.
+dev = [
+    "pre-commit>=4,<5",
+    "ruff>=0.15,<1",
+    "detect-secrets>=1.5,<2",
+]
 
 [project.scripts]
 # `automation` opens the GUI. A console script rather than a gui-script on
