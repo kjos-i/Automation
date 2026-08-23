@@ -83,6 +83,11 @@ installed copy is a snapshot of the scripts at build time, and the folder is the
 user's own, so getting a newer script means either downloading the file into the
 folder or re-running a newer installer. Both start here."""
 
+ICON_PATH = catalog.AUTOMATION_DIR / "images" / "automation.ico"
+"""The window's icon, and the one the installer puts on the shortcut. Found
+relative to the scripts folder rather than to this file, so it resolves the
+same way in the repo and in an installed copy."""
+
 RAIL_WIDTH = 250
 """Fixed width for the script rail. Fixed rather than flexed so the code on the
 right keeps a stable line width as the window resizes."""
@@ -186,6 +191,12 @@ class AutomationGui:
         self.page.window.height = WINDOW_HEIGHT
         self.page.window.min_width = WINDOW_MIN_WIDTH
         self.page.window.min_height = WINDOW_MIN_HEIGHT
+        # The same .ico the installer gives the shortcut, so the title bar and
+        # the taskbar show this app rather than Flet's own bird. Windows only,
+        # and skipped if the file is absent, since a missing picture must never
+        # stop the window opening.
+        if ICON_PATH.exists():
+            self.page.window.icon = str(ICON_PATH)
 
         stranded = runner.cleanup_twins()
 
