@@ -22,7 +22,11 @@ dependencies = ["python-dotenv>=1.2,<2"]
 # keyring is for the Keys dialog, which holds API keys in Windows Credential
 # Manager instead of on disk.
 gui = [
-    "flet>=0.85,<0.86",
+    # `[desktop]` is not optional in practice: plain `flet` installs without
+    # flet-desktop, which is the part that opens a window, so a fresh install
+    # would give a GUI that cannot start. It goes unnoticed in an environment
+    # where something else already pulled it in.
+    "flet[desktop]>=0.85,<0.86",
     "keyring>=25,<26",
 ]
 # One extra per provider family, matching the scripts' own `Setup:` lines. The
