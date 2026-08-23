@@ -22,7 +22,7 @@ It will also come as an [installer](#installing) that ships a private Python
 runtime alongside these same plain script files, so it starts from an icon and
 the folder still opens in your editor.
 
-![The Automation window](images/gui.gif)
+![The Automation window](images/window.gif)
 
 ## Scripts
 
@@ -512,6 +512,16 @@ to a script you already have does not reach you by installing; you would
 download that one file from here, which is what the link at the foot of the Add
 scripts dialog is for.
 
+**Uninstalling** removes that whole folder, scripts you added included, and says
+so before it starts. Two things live outside it and stay unless you tick them:
+your API keys, which Windows holds rather than the app, and the display
+component the window is drawn with, which is shared with any other program built
+with Flet.
+
+If the icon ever seems to do nothing, run `debug.cmd` in the installed folder.
+It opens the same window with a console attached, so whatever went wrong is
+printed instead of swallowed.
+
 ## The window
 
 A small desktop app that lists the scripts and runs them, for the times you
@@ -536,7 +546,12 @@ behaving identically from a terminal.
 - **Keys** holds your API keys and mailbox credentials in Windows Credential
   Manager rather than a file, and passes them to a run as environment variables.
   They are never written into a script or onto disk in plain text. Press Run with
-  one missing and the window says so instead of letting the script fail.
+  one missing and the window says so instead of letting the script fail. The
+  dialog lists what every script in the folder reads, including the hidden ones:
+  a script is hidden because it is not ready to be listed, not because its
+  credentials stopped existing, and it still runs from a terminal. Because the
+  store belongs to your Windows account rather than to the folder, every copy of
+  Automation on the machine sees the same keys.
 - **Check installs** reports what each script needs, read from its own `import`
   statements rather than its setup notes, so it cannot drift. It distinguishes
   required packages from optional ones the script degrades without, and from ones
@@ -552,6 +567,8 @@ behaving identically from a terminal.
   answer joins the prompt on its line the way a terminal shows it.
   `form_from_interview` is the script that works this way, and any script that
   calls `input()` behaves the same.
+- **Help on GitHub**, at the foot of the left column, opens this README in a
+  browser.
 
 **Which scripts appear.** A script is listed when it says `GUI = True` above its
 `CONFIG` block. Ticking it in Add scripts writes that line for you, unticking
@@ -577,4 +594,3 @@ input (`scheduler`, `web_search` in REPEAT mode, and the interactive
 
 For a quick "keep re-running while I'm working" loop without the OS scheduler,
 `web_search.py` has a built-in `REPEAT` / `CYCLE_MINUTES` option (Ctrl+C to stop).
-

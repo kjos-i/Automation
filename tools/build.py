@@ -95,7 +95,7 @@ def shipped_files() -> list[Path]:
     listed = subprocess.run(
         ["git", "ls-files"], cwd=REPO, capture_output=True, text=True, check=True
     ).stdout.split()
-    skip = (".gitignore", "tools/", "images/gui.gif")
+    skip = (".gitignore", "tools/", "images/window.gif")
     return [REPO / f for f in listed if not f.startswith(skip)]
 
 
