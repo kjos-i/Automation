@@ -16,8 +16,14 @@ Run writes a twin of the script with those values substituted and launches it;
 the pane below streams its output. See `runner.py` for why a twin, and
 `catalog.py` for how the fields are found. Neither ever writes to a script.
 
-A script appears here when it says `GUI = True` above its CONFIG block. That is
-the only switch: no list of scripts lives in this file.
+A script appears here when it says `GUI = True` above its CONFIG block, and the
+user has not taken its tile off the rail in the Scripts dialog. No list of
+scripts lives in this file.
+
+Those two are deliberately separate. `GUI` is the AUTHOR's switch, meaning this
+one is unfinished or belongs in a terminal, and the app never shows such a script
+anywhere. The rail choice is the USER's, kept in `prefs.py` so that hiding a tile
+does not edit a distributed file, and so it can be undone from the same dialog.
 """
 
 from __future__ import annotations
@@ -40,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import catalog
 import installs
 import keys
+import prefs
 import runner
 from _styles import (
     ACTIVE_BG,
@@ -347,8 +354,14 @@ class AutomationGui:
 
         Which scripts appear is decided by the scripts, not by this file, so
         adding one to the window is a line in the script rather than a change
-        here."""
-        self.scripts = catalog.discover()
+        here.
+
+        Two filters, and they answer different questions. `discover()` drops what
+        the AUTHOR marked `GUI = False`, which the app never shows anywhere. The
+        prefs set drops what THIS USER took off the rail, which the Scripts
+        dialog still lists so it can be put back."""
+        hidden = prefs.hidden()
+        self.scripts = [s for s in catalog.discover() if s.path.name not in hidden]
         if self.scripts:
             _fill(self._rail_list, [self._tile(s) for s in self.scripts])
         else:
@@ -610,26 +623,48 @@ class AutomationGui:
     # ----- choosing which scripts are listed --------------------------------
 
     def _on_add_scripts(self, _e: ft.Event) -> None:
-        """Every script in the folder with a checkbox: ticked means it appears
-        in the list on the left.
+        """Every script the window may show, with a checkbox: ticked means it
+        appears in the list on the left.
 
-        The tick is the script's own `GUI` line, so what the window shows and
-        what the file says can never disagree. Nothing is created and nothing is
-        deleted; unticking only takes a script off the rail.
+        The tick is a preference in `prefs.py`, NOT the script's `GUI` line. It
+        used to write that line, which meant unticking a tile edited a
+        version-controlled file, and a checkout ended up with a pile of modified
+        scripts. It also left `GUI = False` meaning two different things.
+
+        Scripts marked `GUI = False` are absent from this dialog entirely, which
+        is the author's decision and not the user's to reverse from here. Nothing
+        is created and nothing is deleted; unticking only takes a script off the
+        rail, reversibly.
         """
-        found = catalog.discover(only_shown=False)
+        found = catalog.discover()
+        hidden = prefs.hidden()
         boxes: dict[Path, ft.Checkbox] = {}
+
+        def _toggle_all(ev: ft.Event) -> None:
+            """Tick or untick every row at once, from the box at the top."""
+            wanted = bool(ev.control.value)
+            for one in boxes.values():
+                one.value = wanted
+            self.page.update()
+
+        select_all = ft.Checkbox(
+            value=not hidden,
+            label="Select all",
+            on_change=_toggle_all,
+        )
         rows: list[ft.Control] = [
             ft.Text(
                 "Ticked scripts appear in the list on the left. Unticking one removes it "
-                "from the list; the file itself is never changed beyond that switch.",
+                "from the list; the script file itself is never changed.",
                 size=TILE_SUBTITLE_SIZE,
                 color=ft.Colors.GREY_400,
             ),
             thin_rule(),
+            select_all,
+            thin_rule(),
         ]
         for script in found:
-            box = ft.Checkbox(value=script.shown)
+            box = ft.Checkbox(value=script.path.name not in hidden)
             boxes[script.path] = box
             rows.append(
                 ft.Row(
@@ -675,22 +710,20 @@ class AutomationGui:
         )
 
         def _save(_ev) -> None:
-            changed, failed = 0, []
-            for script in found:
-                wanted = bool(boxes[script.path].value)
-                if wanted == script.shown:
-                    continue
-                try:
-                    catalog.set_shown(script.path, wanted)
-                    changed += 1
-                except (OSError, ValueError) as exc:
-                    failed.append(f"{script.path.name}: {exc}")
+            wanted_hidden = {script.path.name for script in found if not boxes[script.path].value}
+            changed = len(wanted_hidden ^ hidden)
             self.page.pop_dialog()
+            try:
+                prefs.set_hidden(wanted_hidden)
+            except OSError as exc:
+                # Say so rather than swallow it: a preference that silently fails
+                # to save undoes itself on the next launch, which reads as the
+                # app forgetting rather than as an error.
+                self._set_status(f"Could not save the choice: {exc}")
+                self.page.update()
+                return
             self._reload_rail()
-            if failed:
-                self._set_status(f"{len(failed)} could not be changed. {failed[0]}")
-            else:
-                self._set_status(f"{changed} script(s) changed." if changed else "No changes.")
+            self._set_status(f"{changed} script(s) changed." if changed else "No changes.")
             self.page.update()
 
         dialog = ft.AlertDialog(
@@ -732,15 +765,15 @@ class AutomationGui:
     def _credential_names(self) -> list[str]:
         """Every credential the scripts read, across the whole folder.
 
-        `only_shown=False` on purpose: a script is hidden because it is not
-        ready to be listed, not because its credentials stopped existing. The
-        file is still in the folder and still runs from a terminal, so its keys
-        belong in the dialog. Filtering here also disagreed with
+        `discover_all` on purpose: a script marked `GUI = False` is unlisted
+        because it is not ready to be shown, not because its credentials stopped
+        existing. The file is still in the folder and still runs from a terminal,
+        so its keys belong in the dialog. Filtering here also disagreed with
         `clear_keys.py`, which clears the unfiltered set, so the uninstaller
         would have removed keys this dialog never showed.
         """
         found: set[str] = set()
-        for script in catalog.discover(only_shown=False):
+        for script in catalog.discover_all():
             found.update(script.env_vars)
         return sorted(found)
 

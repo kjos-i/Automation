@@ -1,10 +1,13 @@
 """Find the runnable scripts in `Automation/` and read their CONFIG blocks.
 
-`set_shown` is the ONLY thing here that writes to a script, and it rewrites
-exactly one line, `GUI = True` or `GUI = False`, which is the flag that decides
-whether the script appears in the window. It refuses to write if the edit would
-change anything else. Everything else the GUI shows comes from the file as it
-already stands:
+NOTHING HERE WRITES TO A SCRIPT. This module only reads, which is what the
+README promises the app does. It once had a `set_shown` that rewrote a script's
+`GUI` line when a tile was unticked, and that was wrong twice over: it edited a
+distributed, version-controlled file to record one user's preference, and it
+overloaded the author's "not ready" flag with the user's "not on my rail". The
+user's choice now lives in `prefs.py`; `GUI` means only what its author meant.
+
+Everything the GUI shows comes from the file as it already stands:
 
   - which scripts exist        the `*.py` files in the parent folder
   - which ones the GUI lists   those with a `# ==== CONFIG ====` block AND a
@@ -90,12 +93,14 @@ class Script:
         return self.path.stem
 
 
-def discover(folder: Path | None = None, *, only_shown: bool = True) -> list[Script]:
-    """Every runnable script in `folder`, alphabetically.
+def discover_all(folder: Path | None = None) -> list[Script]:
+    """Every runnable script in `folder`, alphabetically, `GUI` ignored.
 
-    `only_shown` (the default) returns just the ones saying `GUI = True`, which
-    is what the rail lists. Pass False for the Add-scripts dialog, which has to
-    offer the hidden ones too; each result carries `shown`.
+    For the things that are true of a script whether or not the window lists it.
+    Credentials are the case that matters: a script the author marked `GUI =
+    False` still runs from a terminal and still reads its keys, so the keys
+    dialog and `clear_keys.py` both walk this list. When they disagreed, the
+    uninstaller removed keys the dialog had never shown.
 
     Skips names starting with `_`, which covers both private helpers and the
     `_gui_run_*.py` twins this GUI writes while a script is running - without
@@ -115,10 +120,25 @@ def discover(folder: Path | None = None, *, only_shown: bool = True) -> list[Scr
             continue
         if script is None:
             continue
-        if only_shown and not script.shown:
-            continue
         scripts.append(script)
     return scripts
+
+
+def discover(folder: Path | None = None) -> list[Script]:
+    """The scripts the window may show, alphabetically.
+
+    `GUI = False` is ABSOLUTE, and filtered here, once. It is the AUTHOR's
+    switch, meaning this script is unfinished or belongs in a terminal, so a file
+    saying it is listed nowhere in the app: not on the rail, and not in the
+    Scripts dialog either.
+
+    Whether the USER has hidden a tile is a different question with a different
+    answer, kept in `prefs.py`. Keeping them apart is the point: they were once
+    the same flag, so unticking a tile edited the script file, and the dialog had
+    to re-list `False` scripts to let anyone undo it - which made the author's
+    switch mean nothing.
+    """
+    return [script for script in discover_all(folder) if script.shown]
 
 
 def _read(path: Path) -> Script | None:
@@ -215,69 +235,6 @@ def _opted_in(source: str) -> bool:
         if isinstance(target, ast.Name) and target.id == "GUI":
             return isinstance(node.value, ast.Constant) and node.value.value is True
     return False
-
-
-def set_shown(path: Path, value: bool) -> None:
-    """Write `GUI = True` or `GUI = False` into a script, and nothing else.
-
-    This is the one place the app modifies a script, and it is deliberately
-    narrow: it rewrites the value of an existing `GUI` line, or inserts the line
-    just after the docstring if there is none. The CONFIG block, the code and
-    the docstring are never touched.
-
-    Before writing, the result is re-parsed and its module-level constants
-    compared with the original. If anything other than `GUI` moved, appeared or
-    vanished, the write is abandoned and `ValueError` is raised rather than
-    saving a file the edit did not fully understand.
-    """
-    original = path.read_text(encoding="utf-8")
-    literal = "True" if value else "False"
-    tree = ast.parse(original)
-
-    node = next(
-        (
-            n
-            for n in tree.body
-            if isinstance(n, ast.Assign)
-            and len(n.targets) == 1
-            and isinstance(n.targets[0], ast.Name)
-            and n.targets[0].id == "GUI"
-        ),
-        None,
-    )
-
-    lines = original.splitlines(keepends=True)
-    if node is not None:
-        # Replace just the value, so any trailing comment on the line survives.
-        # `ast` column offsets are UTF-8 byte offsets, hence the encode/decode.
-        target = node.value
-        raw = lines[target.lineno - 1].encode("utf-8")
-        patched = raw[: target.col_offset] + literal.encode("utf-8") + raw[target.end_col_offset :]
-        lines[target.lineno - 1] = patched.decode("utf-8")
-    else:
-        doc = tree.body[0] if tree.body else None
-        if not (isinstance(doc, ast.Expr) and isinstance(doc.value, ast.Constant)):
-            raise ValueError(f"{path.name} has no module docstring to insert after")
-        at = doc.end_lineno or 0
-        lines[at:at] = ["\n", f"GUI = {literal}  # show this script in the Automation GUI window\n"]
-
-    updated = "".join(lines)
-    if _constant_names(ast.parse(updated)) != _constant_names(tree) | {"GUI"}:
-        raise ValueError(f"refused to write {path.name}: the edit changed more than GUI")
-    path.write_text(updated, encoding="utf-8")
-
-
-def _constant_names(tree: ast.Module) -> set[str]:
-    """The module-level uppercase constant names, used as a before/after
-    fingerprint so `set_shown` can prove it changed nothing else."""
-    return {
-        n.targets[0].id
-        for n in tree.body
-        if isinstance(n, ast.Assign)
-        and len(n.targets) == 1
-        and isinstance(n.targets[0], ast.Name)
-        and n.targets[0].id.isupper()
-    }
 
 
 def _env_vars(tree: ast.Module) -> tuple[str, ...]:

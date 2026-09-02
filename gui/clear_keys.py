@@ -23,9 +23,7 @@ import keys  # noqa: E402
 
 
 def main() -> None:
-    names = sorted(
-        {name for script in catalog.discover(only_shown=False) for name in script.env_vars}
-    )
+    names = sorted({name for script in catalog.discover_all() for name in script.env_vars})
     try:
         removed = keys.clear_many(names)
     except Exception as exc:  # the store itself is unreachable
