@@ -647,10 +647,15 @@ class AutomationGui:
                 one.value = wanted
             self.page.update()
 
-        select_all = ft.Checkbox(
-            value=not hidden,
-            label="Select all",
-            on_change=_toggle_all,
+        # The label is a sibling Text rather than the Checkbox's own `label`,
+        # which sits tighter to the box than the script rows below do. Same Row
+        # shape and same spacing as those rows, so every title starts on one
+        # vertical line down the dialog.
+        select_all_box = ft.Checkbox(value=not hidden, on_change=_toggle_all)
+        select_all = ft.Row(
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=8,
+            controls=[select_all_box, ft.Text("Select all", size=TILE_TITLE_SIZE)],
         )
         rows: list[ft.Control] = [
             ft.Text(
