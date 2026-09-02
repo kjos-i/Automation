@@ -44,7 +44,11 @@ agents = [                                        # web_search_agent, supervisor
 local = ["ollama>=0.4,<1"]                        # local_llm (the daemon installs separately)
 transcribe = ["faster-whisper>=1.1,<2"]           # audio_transcriber
 docs = ["pypdf>=6.15,<7", "python-docx>=1.1,<2"]  # optional readers for doc_finder, summarize_folder
-outlook-desktop = ["pywin32>=306"]                # outlook_desktop_search, Windows only
+# NOTE: An extra belongs here only when the script that needs it is IN the repo.
+# Scripts that are still local, listed in .gitignore, keep their extras local
+# too: shipping `pip install ".[x]"` for a file nobody received is a promise the
+# repo cannot keep, and it puts those packages' licences into this project's
+# dependency surface for no reason.
 # The checks that run at every commit. See .pre-commit-config.yaml, and note
 # that installing this is not enough on its own: `pre-commit install` writes
 # the hook, and without that step the config does nothing.

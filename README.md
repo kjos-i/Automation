@@ -490,10 +490,14 @@ The extras are per provider, so you install only what the scripts you actually
 use need: `".[gui,openai]"`, `".[gui,anthropic]"` and so on. `pyproject.toml`
 lists them all.
 
-**As an installer. Planned, not built yet.** One `Automation-Setup.exe`, a
-double-click, a desktop icon: no terminal, no pip, no cloning. It installs under
-your own user folder rather than `Program Files`, so it never asks for an
-administrator password.
+**As an installer.** One `Automation-Setup.exe`, a double-click, a desktop icon:
+no terminal, no pip, no cloning. It installs under your own user folder rather
+than `Program Files`, so it never asks for an administrator password.
+
+It is built in two steps, which is worth knowing if you build it yourself:
+`tools/build.py` assembles `build/Automation/`, the app plus its own Python, and
+`tools/automation.iss` packs that folder into the setup executable. Neither step
+is inside the other, and `build.py` says so in its own docstring.
 
 Nothing is compiled into that executable. What it puts on disk is an ordinary
 folder holding the same plain `.py` files as this repo, with its own Python
@@ -521,6 +525,35 @@ with Flet.
 If the icon ever seems to do nothing, run `debug.cmd` in the installed folder.
 It opens the same window with a console attached, so whatever went wrong is
 printed instead of swallowed.
+
+## Licensing
+
+This repo is **MIT**. The scripts, the window and the build tooling are all
+yours to take.
+
+The dependencies are permissive too, and they arrive in two ways.
+
+**Bundled with an install.** `PINNED` in `tools/build.py` is the whole list, and
+it is deliberately short: `flet[desktop]` (Apache-2.0), `keyring` (MIT),
+`python-dotenv` (BSD-3-Clause), plus a relocatable CPython.
+
+**Fetched on demand.** What a script itself needs arrives when you press
+**Install missing**, or when you `pip install` the extra yourself. Every one of
+them is MIT, Apache-2.0 or BSD: `openai`, `anthropic`, `google-genai`,
+`tavily-python`, `langgraph`, `langchain-openai`, `httpx`, `ollama`,
+`faster-whisper`, `pypdf`, `python-docx`.
+
+So there is nothing to reconcile: no copyleft anywhere, whether shipped or
+downloaded, and the MIT terms above are the only ones you deal with.
+
+**If that changes, the line to watch is `PINNED`.** A copyleft licence places its
+obligations on whoever *distributes* the covered work. A package a user fetches
+themselves is distributed by PyPI, not by this project, so its terms stay in
+their environment. Move one into `PINNED` and an install starts distributing it,
+at which point those conditions have to be met properly rather than sidestepped.
+
+*Licences were read from the packages' own metadata. This is a description of how
+the pieces fit together, not legal advice.*
 
 ## The window
 

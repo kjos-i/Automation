@@ -397,6 +397,9 @@ _CHOICES: dict[tuple[str, str], tuple[str, ...]] = {
     ("web_search", "TOPIC"): ('"general"', '"news"'),
     ("web_search", "TIME_RANGE"): ("None", '"day"', '"week"', '"month"', '"year"'),
     ("audio_transcriber", "MODEL"): ('"tiny"', '"base"', '"small"', '"medium"', '"large"'),
+    # Fewer sizes than its sister above, and deliberately: `base` sits between
+    # tiny and small with no niche, and `medium` is the same 1.5 GB as `turbo`
+    # while being slower and less accurate.
 }
 
 

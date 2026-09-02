@@ -31,5 +31,10 @@ gmail_search.py
 outlook_cloud_search.py
 outlook_desktop_search.py
 
+# Not ready to publish yet. Working scripts, kept local until they are.
+scan_to_pdf.py
+audio_transcriber_openai_whisper.py
+video_transcriber.py
+
 # Local test data (audio, transcripts, corpora, outputs — never published)
 test_files/

@@ -33,6 +33,13 @@ from catalog import AUTOMATION_DIR, Script
 # are listed here.
 _PIP_NAMES = {
     "dotenv": "python-dotenv",
+    # Four where the import name is nothing like the distribution, and the
+    # underscore rule would install a DIFFERENT, unrelated project: `whisper`,
+    # `cv2` and `fpdf` all exist on PyPI as something else entirely.
+    "whisper": "openai-whisper",
+    "cv2": "opencv-python",
+    "PIL": "pillow",
+    "fpdf": "fpdf2",
     "tavily": "tavily-python",
     "google": "google-genai",
     "docx": "python-docx",
